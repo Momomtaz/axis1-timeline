@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex">
+<title>Axis 1 COP31 Timeline</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,750&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a conference run-of-show board. Days as tabs, hours run left to right, one lane per venue (or per sector); each event is its own block. */
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --fg:#16202B; --muted:#5B6773; --line:#D9DFE5; --line-soft:#E8ECF0;
+  --accent:#0B5E73; --accent-fg:#FFFFFF; --clash:#D3263A;
+  --c-electrification:#2F6FDB; --c-efficiency:#11937F; --c-fuels:#C97F06; --c-land-transport:#7A4FD0;
+  --c-maritime:#0E7FA6; --c-taff:#B8434A; --c-green-industry:#3A9440; --c-all:#3B4652; --c-none:#8A94A0;
+  --f-display:"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --f-body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --px:132px; --row:52px; --label:190px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F151B; --surface:#161E26; --fg:#E7ECF1; --muted:#9AA6B2; --line:#2A3540; --line-soft:#1F2932;
+  --accent:#5CC3DA; --accent-fg:#0B1A20; --clash:#FF6B7A;
+  --c-electrification:#6E9EF0; --c-efficiency:#3CC4AC; --c-fuels:#EBAA3A; --c-land-transport:#A786EC;
+  --c-maritime:#45B5DA; --c-taff:#E07A80; --c-green-industry:#6CC572; --c-all:#AAB6C2; --c-none:#7D8894;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F151B; --surface:#161E26; --fg:#E7ECF1; --muted:#9AA6B2; --line:#2A3540; --line-soft:#1F2932;
+  --accent:#5CC3DA; --accent-fg:#0B1A20; --clash:#FF6B7A;
+  --c-electrification:#6E9EF0; --c-efficiency:#3CC4AC; --c-fuels:#EBAA3A; --c-land-transport:#A786EC;
+  --c-maritime:#45B5DA; --c-taff:#E07A80; --c-green-industry:#6CC572; --c-all:#AAB6C2; --c-none:#7D8894;
+  color-scheme:dark}
+@media (max-width:640px){:root{--px:96px; --label:128px; --row:56px}}
+
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--fg); font:15px/1.5 var(--f-body)}
+.wrap{max-width:1400px; margin:0 auto; padding-block:28px 48px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:grid; gap:20px}
+header{display:grid; gap:6px}
+.eyebrow{font:500 12px/1 var(--f-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--accent)}
+h1{font:750 clamp(26px,4vw,40px)/1.05 var(--f-display); margin:0; text-wrap:balance; letter-spacing:-.01em}
+.sub{color:var(--muted); margin:0; max-width:72ch}
+.sub b{color:var(--fg); font-weight:600}
+
+.controls{display:grid; gap:12px}
+.days{display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; scrollbar-width:thin}
+.day{flex:0 0 auto; min-width:72px; border:1px solid var(--line); background:var(--surface); color:var(--fg);
+  border-radius:8px; padding:6px 10px 7px; text-align:left; cursor:pointer; font:inherit; display:grid; gap:2px}
+.day .dn{font:500 11px/1 var(--f-mono); text-transform:uppercase; letter-spacing:.06em; color:var(--muted)}
+.day .dd{font:600 17px/1.1 var(--f-display)}
+.day .dc{font:400 11px/1 var(--f-mono); color:var(--muted); font-variant-numeric:tabular-nums}
+.day[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--accent-fg)}
+.day[aria-pressed="true"] .dn,.day[aria-pressed="true"] .dc{color:var(--accent-fg); opacity:.85}
+.day.empty{opacity:.55}
+.row{display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center}
+.seg{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:var(--surface)}
+.seg button{border:0; background:none; color:var(--fg); font:500 13px/1 var(--f-body); padding:8px 12px; cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--fg); color:var(--bg)}
+.lbl{font:500 11px/1 var(--f-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+.chip{--c:var(--c-none); border:1px solid color-mix(in srgb,var(--c) 45%,var(--line)); background:var(--surface); color:var(--fg);
+  border-radius:999px; padding:5px 11px 5px 9px; font:500 13px/1 var(--f-body); cursor:pointer; display:inline-flex; gap:6px; align-items:center}
+.chip i{width:9px; height:9px; border-radius:50%; background:var(--c)}
+.chip[aria-pressed="true"]{background:color-mix(in srgb,var(--c) 22%,var(--surface)); border-color:var(--c)}
+.chip.off{opacity:.45}
+.toggle{display:inline-flex; gap:8px; align-items:center; font-size:13px; cursor:pointer}
+.toggle input{accent-color:var(--clash); width:16px; height:16px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+.summary{display:flex; flex-wrap:wrap; gap:6px 18px; font-size:13px; color:var(--muted)}
+.summary b{color:var(--fg); font-variant-numeric:tabular-nums}
+.summary .cl b{color:var(--clash)}
+
+.boardwrap{overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--surface)}
+.board{position:relative; width:calc(var(--label) + var(--hours) * var(--px))}
+.hrs{display:flex; position:sticky; top:0; z-index:3; background:var(--surface); border-bottom:1px solid var(--line)}
+.hrs .corner{position:sticky; left:0; z-index:4; width:var(--label); flex:0 0 var(--label); background:var(--surface); border-right:1px solid var(--line)}
+.hrs span{flex:0 0 var(--px); font:500 11px/1 var(--f-mono); color:var(--muted); padding:9px 6px; border-left:1px solid var(--line-soft)}
+.lane{display:flex; border-bottom:1px solid var(--line-soft)}
+.lane:last-child{border-bottom:0}
+.lane .name{position:sticky; left:0; z-index:2; width:var(--label); flex:0 0 var(--label); background:var(--surface);
+  border-right:1px solid var(--line); padding:8px 10px; display:grid; align-content:start; gap:2px; min-width:0}
+.lane .name strong{font:600 13px/1.25 var(--f-body); overflow-wrap:anywhere}
+.lane .name small{font:400 11px/1.2 var(--f-mono); color:var(--muted)}
+.lane .name .sw{display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--c); margin-right:6px; vertical-align:1px}
+.track{position:relative; flex:1 0 auto; width:calc(var(--hours) * var(--px));
+  background-image:repeating-linear-gradient(to right, var(--line-soft) 0 1px, transparent 1px var(--px));
+  padding-block:4px}
+.ev{--c:var(--c-none); position:absolute; height:calc(var(--row) - 6px); border-radius:6px; text-align:left; cursor:pointer;
+  border:1px solid color-mix(in srgb,var(--c) 70%,transparent);
+  background:color-mix(in srgb,var(--c) 26%,var(--surface)); color:var(--fg);
+  padding:4px 7px; overflow:hidden; font:inherit; display:grid; align-content:start; gap:1px}
+.ev.review{border-style:dashed; background:color-mix(in srgb,var(--c) 12%,var(--surface))}
+.ev .t{font:500 10.5px/1.1 var(--f-mono); color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums}
+.ev .n{font:600 12px/1.2 var(--f-body); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.ev.open{background-image:linear-gradient(to right, transparent 70%, var(--surface))}
+.ev.clash{box-shadow:0 0 0 2px var(--clash)}
+.ev.clash::after{content:"clash"; position:absolute; right:4px; top:3px; font:600 9px/1 var(--f-mono); letter-spacing:.05em;
+  text-transform:uppercase; color:var(--surface); background:var(--clash); border-radius:3px; padding:2px 4px}
+.ev.dim{opacity:.18}
+.ev:hover{filter:brightness(1.04)}
+.empty-day{padding:28px 16px; color:var(--muted); text-align:center}
+
+h2{font:700 18px/1.2 var(--f-display); margin:0}
+.tbc{display:grid; gap:10px}
+.cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:8px}
+.card{--c:var(--c-none); text-align:left; font:inherit; color:var(--fg); cursor:pointer; background:var(--surface);
+  border:1px solid var(--line); border-radius:8px; padding:10px 12px; display:grid; gap:4px; min-width:0}
+.card .n{font-weight:600; font-size:13.5px; line-height:1.3}
+.card .m{font-size:12px; color:var(--muted)}
+.dots{display:flex; gap:4px; flex-wrap:wrap}
+.dots i{font:500 10.5px/1 var(--f-mono); font-style:normal; padding:3px 6px; border-radius:4px;
+  background:color-mix(in srgb,var(--c) 18%,var(--surface)); color:var(--fg)}
+
+.legend{display:flex; flex-wrap:wrap; gap:8px 18px; font-size:12px; color:var(--muted); align-items:center}
+.legend .k{display:inline-block; width:26px; height:14px; border-radius:3px; vertical-align:-2px; margin-right:6px;
+  border:1px solid var(--c-all); background:color-mix(in srgb,var(--c-all) 26%,var(--surface))}
+.legend .k.r{border-style:dashed; background:color-mix(in srgb,var(--c-all) 12%,var(--surface))}
+.legend .k.c{box-shadow:0 0 0 2px var(--clash)}
+footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90ch}
+footer a{color:var(--accent)}
+
+dialog{border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--fg); padding:0; width:min(520px, calc(100vw - 32px))}
+dialog::backdrop{background:rgba(10,16,22,.45)}
+.dlg{padding:18px 20px 20px; display:grid; gap:12px}
+.dlg h3{font:700 19px/1.2 var(--f-display); margin:0; text-wrap:balance}
+.dlg dl{display:grid; grid-template-columns:max-content 1fr; gap:6px 14px; margin:0; font-size:13.5px}
+.dlg dt{font:500 11px/1.6 var(--f-mono); text-transform:uppercase; letter-spacing:.06em; color:var(--muted)}
+.dlg dd{margin:0; min-width:0; overflow-wrap:anywhere}
+.dlg .clashes{border-top:1px solid var(--line); padding-top:10px; font-size:13px; display:grid; gap:4px}
+.dlg .clashes b{color:var(--clash)}
+.dlg .close{justify-self:end; border:1px solid var(--line); background:none; color:var(--fg); border-radius:6px; padding:6px 12px; font:500 13px var(--f-body); cursor:pointer}
+@media (prefers-reduced-motion:no-preference){.ev,.chip,.day,.wev{transition:opacity .15s, background-color .15s}}
+
+/* Intro callout */
+.note{margin:6px 0 0; max-width:72ch; padding:10px 14px; border-left:3px solid var(--accent); border-radius:0 8px 8px 0;
+  background:color-mix(in srgb,var(--accent) 8%,var(--surface)); font-size:14px}
+.note a{color:var(--accent); font-weight:500}
+
+/* Week view: days across, time down; fill = sector, border = venue */
+:root{--hh:56px; --gut:52px; --vb:#8A94A0}
+.weeks{display:flex; gap:6px; flex-wrap:wrap}
+.wk{border:1px solid var(--line); background:var(--surface); color:var(--fg); border-radius:8px; padding:7px 12px; font:500 13px/1.2 var(--f-body); cursor:pointer}
+.wk b{font:600 15px/1 var(--f-display); margin-right:6px}
+.wk[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--accent-fg)}
+.wgrid{display:grid; grid-template-columns:var(--gut) repeat(var(--ndays), minmax(118px,1fr)); min-width:calc(var(--gut) + var(--ndays) * 118px)}
+.whead{position:sticky; top:0; z-index:3; background:var(--surface); border-bottom:1px solid var(--line); padding:8px 8px 7px; display:grid; gap:2px}
+.whead.corner{position:sticky; left:0; z-index:4}
+.whead .dn{font:500 11px/1 var(--f-mono); text-transform:uppercase; letter-spacing:.06em; color:var(--muted)}
+.whead .dd{font:600 16px/1.1 var(--f-display)}
+.whead .dc{font:400 11px/1 var(--f-mono); color:var(--muted)}
+.wtimes{position:sticky; left:0; z-index:2; background:var(--surface); border-right:1px solid var(--line)}
+.wtimes span{position:absolute; right:6px; transform:translateY(-50%); font:500 10.5px/1 var(--f-mono); color:var(--muted)}
+.wcol{position:relative; border-left:1px solid var(--line-soft);
+  background-image:repeating-linear-gradient(to bottom, var(--line-soft) 0 1px, transparent 1px var(--hh))}
+.wev{--c:var(--c-none); --v:var(--vb); position:absolute; border-radius:5px; cursor:pointer; text-align:left; font:inherit; color:var(--fg);
+  border:2px solid var(--v); background:color-mix(in srgb,var(--c) 22%,var(--surface));
+  padding:3px 5px; overflow:hidden; display:grid; align-content:start; gap:1px; margin:0 1px}
+.wev.review{border-style:dashed; background:color-mix(in srgb,var(--c) 11%,var(--surface))}
+.wev .t{font:500 10px/1.1 var(--f-mono); color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums}
+.wev .n{font:600 11.5px/1.2 var(--f-body); overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:var(--lines,3)}
+.wev .vn{font:400 10px/1.15 var(--f-body); color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.wev.clash::after{content:"!"; position:absolute; right:3px; top:3px; width:14px; height:14px; border-radius:50%;
+  background:var(--clash); color:var(--surface); font:700 10px/14px var(--f-mono); text-align:center}
+.wev.dim{opacity:.15}
+.wev:hover{filter:brightness(1.05); z-index:2}
+.vlegend{display:flex; flex-wrap:wrap; gap:6px}
+.vchip{--v:var(--vb); border:2px solid var(--v); background:var(--surface); color:var(--fg); border-radius:6px; padding:4px 9px;
+  font:500 12.5px/1.2 var(--f-body); cursor:pointer}
+.vchip small{font:400 11px var(--f-mono); color:var(--muted); margin-left:4px}
+.vchip[aria-pressed="true"]{background:color-mix(in srgb,var(--v) 18%,var(--surface))}
+.vchip.off{opacity:.45}
+.daygroup{display:grid; gap:8px}
+.daygroup h3{font:600 14px/1.2 var(--f-body); margin:4px 0 0; color:var(--muted)}
+[hidden]{display:none!important}
+.board.weekmode{width:auto}
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">COP31 · Antalya · 9–20 Nov 2026</div>
+    <h1>Axis 1 events timeline</h1>
+    <p class="note">This list is crowdsourced. Partners across the Action Agenda share their events, and we keep it up to date together as details change. If something is missing, wrong, or you are not sure, just ask Mohamed Hegazy (CCT): <a href="mailto:mohamedhegazy@climatechampions.team">mohamedhegazy@climatechampions.team</a>.</p>
+    <p class="sub">Where and when Axis 1 events (energy, industry, transport) take place, so partners can sequence announcements and avoid running the same topic at the same hour. Times are local <b>(UTC+3)</b>. A red mark flags events on the same topic that overlap in time.</p>
+  </header>
+
+  <section class="controls" aria-label="Filters">
+    <div class="row">
+      <span class="lbl">View</span>
+      <div class="seg" role="group" aria-label="View">
+        <button id="m-week" aria-pressed="true">Week</button>
+        <button id="m-venue" aria-pressed="false">Day, by venue</button>
+        <button id="m-sector" aria-pressed="false">Day, by sector</button>
+      </div>
+      <label class="toggle"><input type="checkbox" id="clashonly"> Show only clashes</label>
+    </div>
+    <div class="weeks" id="weeks" role="group" aria-label="Week"></div>
+    <div class="days" id="days" role="group" aria-label="Day"></div>
+    <div class="row">
+      <span class="lbl">Sectors</span>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="row" id="vrow">
+      <span class="lbl">Venues (border colour)</span>
+      <div class="vlegend" id="vlegend"></div>
+    </div>
+  </section>
+
+  <div class="summary" id="summary" aria-live="polite"></div>
+
+  <div class="boardwrap"><div class="board" id="board"></div></div>
+
+  <div class="legend" id="legend"></div>
+
+  <section class="tbc" id="tbc"></section>
+
+  <footer>
+    <div>Source: CCT Axis 1 partner events overview, refreshed 20 Oct 2026. Only events confirmed or under review are shown. Events tagged "Axis-wide" cover all sectors and are never counted as clashes.</div>
+    <div>Full list with links: <a href="https://docs.google.com/spreadsheets/d/1D-vNtbPJbtZle4gJHoXD293OO2U8ZnA6Ab_d4dAqCk4" target="_blank" rel="noopener">COP31 Axis 1 Events Overview</a>. To add or correct an event, email mohamedhegazy@climatechampions.team.</div>
+  </footer>
+</div>
+
+<dialog id="dlg"><div class="dlg" id="dlgbody"></div></dialog>
+
+<script type="application/json" id="data">[{"id": "A1-083", "date": "2026-11-09", "s": 900, "e": 960, "time": "15:00–16:00", "title": "Empowering Food Security: Accelerating the Shift to a Low-Carbon Fertiliser Industry", "org": "UNIDO", "loc": "UNIDO Pavilion", "status": "Under review", "tags": ["green-industry", "gi-chemicals"], "fp": "tbc"}, {"id": "A1-118", "date": "2026-11-09", "s": null, "e": null, "time": "tbc", "title": "COP31 Utility Meetup", "org": "ELDER, Enerjisa, UNEZA", "loc": "Congress Center Hall C4 (Green Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-135", "date": "2026-11-09", "s": null, "e": null, "time": "tbc", "title": "Building skills and a green workforce as the foundation for the energy transition in Africa", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": ["electrification"], "fp": "tbc"}, {"id": "A1-084", "date": "2026-11-10", "s": 510, "e": 570, "time": "08:30–09:30", "title": "Breakfast with Women in Green Hydrogen: Bridging Potential and Future Demand", "org": "UNIDO", "loc": "UNIDO Pavilion", "status": "Under review", "tags": ["fuels", "green-industry", "gi-hydrogen"], "fp": "tbc"}, {"id": "A1-007", "date": "2026-11-10", "s": 600, "e": 840, "time": "10:00–14:00", "title": "Official Inauguration of the Swedish Pavilion", "org": "Business Sweden", "loc": "Swedish Pavilion (Blue Zone)", "status": "Confirmed", "tags": [], "fp": "Mohamed Hegazy"}, {"id": "A1-075", "date": "2026-11-10", "s": 600, "e": null, "time": "10:00–tbc", "title": "Neste Energy Drinks: A high-level briefing on the state of global energy security", "org": "Neste", "loc": "Finland Pavilion", "status": "Confirmed", "tags": ["fuels"], "fp": "tbc"}, {"id": "A1-015", "date": "2026-11-10", "s": 630, "e": 690, "time": "10:30–11:30", "title": "Grid / Energy Investor Roundtable with SEforALL", "org": "REA, SEforALL", "loc": "REA Pavilion (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-005", "date": "2026-11-10", "s": 690, "e": 780, "time": "11:30–13:00", "title": "Axis 1 Showcase Event", "org": "WBCSD", "loc": "Special Event Room 4 Perge (Blue Zone)", "status": "Confirmed", "tags": ["all"], "fp": "tbc"}, {"id": "A1-016", "date": "2026-11-10", "s": 720, "e": 780, "time": "12:00–13:00", "title": "Senior Roundtable with SSE, National Grid and Hitachi Energy", "org": "REA, SSE, National Grid, Hitachi Energy", "loc": "REA Pavilion (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-085", "date": "2026-11-10", "s": 765, "e": 840, "time": "12:45–14:00", "title": "Closing the Offtake Gap: Launch of UNIDO's Hydrogen Bridge", "org": "UNIDO", "loc": "UNIDO Pavilion", "status": "Under review", "tags": ["fuels", "green-industry", "gi-hydrogen", "gi-demand"], "fp": "tbc"}, {"id": "A1-017", "date": "2026-11-10", "s": 810, "e": 870, "time": "13:30–14:30", "title": "Senior Roundtable on Financing Grids", "org": "REA, UNEZA, GGI", "loc": "REA Pavilion (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-002", "date": "2026-11-10", "s": 810, "e": 870, "time": "13:30–14:30", "title": "Mission Efficiency: One Year of Delivering on the Plan to Accelerate Doubling Energy Efficiency", "org": "SEforALL", "loc": "Special Event Room 3 Assos (Blue Zone)", "status": "Confirmed", "tags": ["efficiency"], "fp": "tbc"}, {"id": "A1-120", "date": "2026-11-10", "s": 840, "e": 900, "time": "14:00–15:00", "title": "Scaling Sustainable Biogases: Unlocking Policy, Technology, Investment for a Secure Energy Future", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels"], "fp": "tbc"}, {"id": "A1-008", "date": "2026-11-10", "s": 840, "e": 1060, "time": "14:00–17:40", "title": "Energy, Industry, and Transport Summit: Electrification, Decarbonised Industry and Resilient Infrastructure", "org": "Business Sweden", "loc": "Swedish Pavilion (Blue Zone)", "status": "Under review", "tags": ["green-industry", "gi-cross"], "fp": "Mohamed Hegazy"}, {"id": "A1-034", "date": "2026-11-10", "s": 870, "e": 915, "time": "14:30–15:15", "title": "Panel Discussion: Resilient Grids, Powering Electrification and Climate-Resilient Cities", "org": "Enerjisa, UNEZA", "loc": "Energy & Transport Hub (Green Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-089", "date": "2026-11-10", "s": 870, "e": 960, "time": "14:30–16:00", "title": "Decarbonising road transport in the Global South", "org": "EC", "loc": "EU Pavilion", "status": "Under review", "tags": ["land-transport"], "fp": "tbc"}, {"id": "A1-018", "date": "2026-11-10", "s": 900, "e": 960, "time": "15:00–16:00", "title": "Data Centre Senior Roundtable #1 with AVEVA", "org": "REA, AVEVA", "loc": "REA Pavilion (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-003", "date": "2026-11-10", "s": 900, "e": 960, "time": "15:00–16:00", "title": "One Year of the Belém 4X Pledge and the Future Fuels Action Plan: From Commitment to Action", "org": "CEM, RMI", "loc": "Special Event Room 3 Assos (Blue Zone)", "status": "Confirmed", "tags": ["fuels", "maritime", "green-industry", "gi-hydrogen"], "fp": "tbc"}, {"id": "A1-121", "date": "2026-11-10", "s": 960, "e": 1020, "time": "16:00–17:00", "title": "Delivering Belém 4X: Scaling Sustainable Biofuels", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels"], "fp": "tbc"}, {"id": "A1-073", "date": "2026-11-10", "s": 1020, "e": 1140, "time": "17:00–19:00", "title": "Opening Global Climate Action Event", "org": "tbc", "loc": "Special Event Room 4 Perge (Blue Zone)", "status": "Confirmed", "tags": [], "fp": "tbc"}, {"id": "A1-019", "date": "2026-11-10", "s": 1050, "e": 1110, "time": "17:30–18:30", "title": "Energy Day Mini-Reception", "org": "REA", "loc": "REA Pavilion (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-086", "date": "2026-11-10", "s": 1080, "e": 1200, "time": "18:00–20:00", "title": "\"H2 Connects\" Networking Reception: Connecting Continents, Industries, People", "org": "UNIDO", "loc": "UNIDO Pavilion", "status": "Under review", "tags": ["fuels", "green-industry", "gi-hydrogen"], "fp": "tbc"}, {"id": "A1-011", "date": "2026-11-10", "s": 1110, "e": 1200, "time": "18:30–20:00", "title": "Scaling Global Green Road Corridors: Delivering NDCs through Zero-Emission Freight", "org": "D2Z, ICCT, SFC", "loc": "Side Event Room 5 (Blue Zone)", "status": "Confirmed", "tags": ["land-transport", "electrification"], "fp": "Mohamed Hegazy"}, {"id": "A1-045", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "Is Industry Ready to Electrify? Launch of UNIDO's Electrification Readiness Index", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": ["electrification", "green-industry", "gi-electrification"], "fp": "Ephraim França"}, {"id": "A1-046", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "Side event on Industry Electrification (Germany)", "org": "BMUKN", "loc": "tbc", "status": "Under review", "tags": ["electrification", "green-industry", "gi-electrification"], "fp": "Ephraim França"}, {"id": "A1-053", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "From Industry to Mobility: Brazilian Solutions for Battery Decarbonization and Circularity", "org": "EMF", "loc": "Brazil Pavilion – Belém", "status": "Confirmed", "tags": ["land-transport", "electrification", "green-industry", "gi-circularity"], "fp": "Mohamed Hegazy"}, {"id": "A1-054", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "Financing the Transition: Enabling the Decarbonization of Brazilian Transport", "org": "CNT", "loc": "Brazil Pavilion – Belém", "status": "Confirmed", "tags": ["land-transport"], "fp": "Mohamed Hegazy"}, {"id": "A1-055", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "Energy Transition: How Can Brazil Accelerate Its Shift Away from Fossil Fuels?", "org": "FGV", "loc": "Brazil Pavilion – Belém", "status": "Confirmed", "tags": ["taff"], "fp": "Ephraim França"}, {"id": "A1-056", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "Forest Energies: Open Innovation to Transform Energy Access", "org": "ANEEL", "loc": "Brazil Pavilion – Belém", "status": "Confirmed", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-057", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "Delivering the Belém 4x Pledge: The Maritime Pathway for Hydrogen Derivatives", "org": "UNIDO", "loc": "Brazil Pavilion – Mutirão", "status": "Confirmed", "tags": ["fuels", "maritime", "green-industry", "gi-hydrogen"], "fp": "Mohamed Hegazy"}, {"id": "A1-058", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "Sustainable growth opportunities: Scaling Brazilian SAF, from local production to global offtake", "org": "BCG, COP30 HLC", "loc": "Brazil Pavilion – Mutirão", "status": "Confirmed", "tags": ["fuels"], "fp": "Mohamed Hegazy"}, {"id": "A1-059", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "Convening a Network for Zero-Emission Freight: e-Dutra and the Global MOU", "org": "D2Z", "loc": "Brazil Pavilion – Mutirão", "status": "Confirmed", "tags": ["land-transport"], "fp": "Mohamed Hegazy"}, {"id": "A1-060", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "Beyond Fossil Fuels: The Ghana Pilot for Exporter-Importer Partnerships", "org": "OECD", "loc": "Brazil Pavilion – Mutirão", "status": "Confirmed", "tags": ["taff"], "fp": "Ephraim França"}, {"id": "A1-061", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "Launch of the Coal Transition Partnerships", "org": "PPCA", "loc": "Brazil Pavilion – Mutirão", "status": "Confirmed", "tags": ["taff"], "fp": "Ephraim França"}, {"id": "A1-094", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "Aviation Summit (title tbc)", "org": "ATAG, Global Zero Waste Forum", "loc": "tbc (Green Zone)", "status": "Confirmed", "tags": ["fuels"], "fp": "Mohamed Hegazy"}, {"id": "A1-122", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "The Biogas Brew", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels"], "fp": "tbc"}, {"id": "A1-136", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "Bridging Ambition and Implementation: Global Energy Interconnection and Power Technology Innovation Towards 2035", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": ["electrification"], "fp": "tbc"}, {"id": "A1-137", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "From Solar Potential to Productive Power: Building Markets, Skills and Quality for Solar Products", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": ["electrification"], "fp": "tbc"}, {"id": "A1-138", "date": "2026-11-10", "s": null, "e": null, "time": "tbc", "title": "Gender-Responsive Renewable Energy for Empowerment and Inclusive Energy Transitions", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": ["electrification"], "fp": "tbc"}, {"id": "A1-020", "date": "2026-11-11", "s": 540, "e": 600, "time": "09:00–10:00", "title": "Ministerial Roundtable: Accelerating Action on Grids and Electrification and Launch of the GGI Technical Assistance Solutions Hub", "org": "GGI, UNEZA, IRENA", "loc": "Special Event Room 1 Uzungol (Blue Zone)", "status": "Confirmed", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-123", "date": "2026-11-11", "s": 720, "e": 780, "time": "12:00–13:00", "title": "SAF Policy and Technology Pathways", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels"], "fp": "tbc"}, {"id": "A1-006", "date": "2026-11-11", "s": 720, "e": 810, "time": "12:00–13:30", "title": "Axis 1 Synthesis Roundtable", "org": "SEforALL", "loc": "Special Event Room 1 Uzungol (Blue Zone)", "status": "Confirmed", "tags": ["all"], "fp": "tbc"}, {"id": "A1-009", "date": "2026-11-11", "s": 750, "e": 960, "time": "12:30–16:00", "title": "Circularity Summit: Scaling Circular Solutions for Climate-Resilient Value Chains", "org": "Business Sweden", "loc": "Swedish Pavilion (Blue Zone)", "status": "Under review", "tags": ["green-industry", "gi-circularity"], "fp": "tbc"}, {"id": "A1-022", "date": "2026-11-11", "s": 810, "e": 870, "time": "13:30–14:30", "title": "Senior Roundtable on Supply Chain Alignment for Grids", "org": "REA, UNEZA, GGI", "loc": "REA Pavilion (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-124", "date": "2026-11-11", "s": 840, "e": 900, "time": "14:00–15:00", "title": "Waste to Revenue: Circular Economics of Biofuels", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels"], "fp": "tbc"}, {"id": "A1-023", "date": "2026-11-11", "s": 900, "e": 960, "time": "15:00–16:00", "title": "Green Innovation Session, with National Grid and AVEVA", "org": "REA, National Grid, AVEVA", "loc": "REA Pavilion (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-093", "date": "2026-11-11", "s": 960, "e": 1020, "time": "16:00–17:00", "title": "Solutions and Delivery Event AG 25: Reduction of non-CO₂ gases", "org": "CCAC, World Bank", "loc": "Special Event Room 3 Assos (Blue Zone)", "status": "Confirmed", "tags": [], "fp": "tbc"}, {"id": "A1-024", "date": "2026-11-11", "s": 990, "e": 1050, "time": "16:30–17:30", "title": "Senior Roundtable on Social Value narratives on clean energy", "org": "REA", "loc": "REA Pavilion (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-074", "date": "2026-11-11", "s": 1020, "e": 1080, "time": "17:00–18:00", "title": "Solutions and Delivery Event AG 3: Ensuring universal access to energy", "org": "tbc", "loc": "Special Event Room 3 Assos (Blue Zone)", "status": "Confirmed", "tags": [], "fp": "tbc"}, {"id": "A1-062", "date": "2026-11-11", "s": null, "e": null, "time": "tbc", "title": "The Cooling Dilemma: Refrigeration, Air Conditioning, and Climate Adaptation in Brazil", "org": "ABRAVA", "loc": "Brazil Pavilion – Belém", "status": "Confirmed", "tags": ["efficiency"], "fp": "Ephraim França"}, {"id": "A1-063", "date": "2026-11-11", "s": null, "e": null, "time": "tbc", "title": "Electrification Begins with Wind and a Competitive Industry", "org": "GOWA, GGI", "loc": "Brazil Pavilion – Mutirão", "status": "Confirmed", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-064", "date": "2026-11-11", "s": null, "e": null, "time": "tbc", "title": "From Commitment to Capital: Financing the Low Carbon Freight Transition", "org": "SLOCAT", "loc": "Brazil Pavilion – Mutirão", "status": "Confirmed", "tags": ["land-transport"], "fp": "Mohamed Hegazy"}, {"id": "A1-065", "date": "2026-11-11", "s": null, "e": null, "time": "tbc", "title": "Transition Minerals: Building Sustainable Supply Chains for a New Energy Future", "org": "ApexBrasil", "loc": "Brazil Pavilion – Mutirão", "status": "Confirmed", "tags": ["green-industry", "gi-minerals"], "fp": "Ephraim França"}, {"id": "A1-139", "date": "2026-11-11", "s": null, "e": null, "time": "tbc", "title": "AI's Dual Climate Role: Its Own Green Energy Needs and Its Power to Transform Energy", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": ["electrification"], "fp": "tbc"}, {"id": "A1-049", "date": "2026-11-12", "s": 600, "e": 660, "time": "10:00–11:00", "title": "COP31 Business Forum Plenary Day 1", "org": "TOBB", "loc": "tbc", "status": "Under review", "tags": [], "fp": "tbc"}, {"id": "A1-125", "date": "2026-11-12", "s": 600, "e": 660, "time": "10:00–11:00", "title": "Advancing Sustainable Biofuel Feedstock Supply Chains", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels"], "fp": "tbc"}, {"id": "A1-026", "date": "2026-11-12", "s": 720, "e": 780, "time": "12:00–13:00", "title": "Panel Discussion: Smart Grid, Smart Capital: Investing in Next-Gen Distribution", "org": "UNEZA, AFID, IRENA", "loc": "IRENA / GRA Pavilion", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-027", "date": "2026-11-12", "s": 720, "e": 780, "time": "12:00–13:00", "title": "UK x US VIP Roundtable, chaired by National Grid and Jones Day", "org": "REA, National Grid, Jones Day", "loc": "REA Pavilion (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-126", "date": "2026-11-12", "s": 720, "e": 780, "time": "12:00–13:00", "title": "Regulatory and Technology pathways: Unlocking Marine Biofuels", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels", "maritime"], "fp": "tbc"}, {"id": "A1-028", "date": "2026-11-12", "s": 810, "e": 870, "time": "13:30–14:30", "title": "Data Centre Senior Roundtable #2 with Hon Chris Skidmore", "org": "REA", "loc": "REA Pavilion (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-127", "date": "2026-11-12", "s": 840, "e": 900, "time": "14:00–15:00", "title": "Advancing Global Policy Cooperation on Biofuels", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels"], "fp": "tbc"}, {"id": "A1-029", "date": "2026-11-12", "s": 900, "e": 960, "time": "15:00–16:00", "title": "Senior Business Roundtable with EY (Grids / Energy focus)", "org": "REA, EY", "loc": "REA Pavilion (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-091", "date": "2026-11-12", "s": 930, "e": 990, "time": "15:30–16:30", "title": "GCA Solutions and Delivery Event, Axis 4 – AG 13: Resilient and Adaptive Transport Infrastructure", "org": "ICSI, UITP", "loc": "Special Event Room 3 Assos (Blue Zone)", "status": "Confirmed", "tags": ["land-transport"], "fp": "Shivi Dwivedi"}, {"id": "A1-050", "date": "2026-11-12", "s": 1140, "e": 1320, "time": "19:00–22:00", "title": "COP31 Business Forum Gala Dinner", "org": "TOBB", "loc": "tbc", "status": "Under review", "tags": [], "fp": "tbc"}, {"id": "A1-069", "date": "2026-11-12", "s": null, "e": null, "time": "tbc", "title": "Building the Transition: Accelerating Electrification & Climate-Resilient Cities", "org": "WorldGBC", "loc": "Brazil Pavilion – Mutirão", "status": "Confirmed", "tags": ["electrification", "efficiency"], "fp": "Ephraim França"}, {"id": "A1-051", "date": "2026-11-13", "s": 600, "e": 660, "time": "10:00–11:00", "title": "COP31 Business Forum Plenary Day 2", "org": "TOBB", "loc": "tbc", "status": "Under review", "tags": [], "fp": "tbc"}, {"id": "A1-128", "date": "2026-11-13", "s": 600, "e": 660, "time": "10:00–11:00", "title": "Green Trade Corridors and Carbon Market Mechanisms", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels"], "fp": "tbc"}, {"id": "A1-030", "date": "2026-11-13", "s": 720, "e": 780, "time": "12:00–13:00", "title": "Investing in Difficult Markets: Lessons from Ukraine's Energy Sector", "org": "REA, Howden", "loc": "REA Pavilion (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-129", "date": "2026-11-13", "s": 720, "e": 780, "time": "12:00–13:00", "title": "Advancing Global Standards: Towards a Biofuels Mutual Recognition Framework", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels"], "fp": "tbc"}, {"id": "A1-052", "date": "2026-11-13", "s": 750, "e": 840, "time": "12:30–14:00", "title": "COP31 Business Forum Advisory Council", "org": "TOBB", "loc": "TOBB Lounge", "status": "Under review", "tags": [], "fp": "tbc"}, {"id": "A1-010", "date": "2026-11-13", "s": 780, "e": 960, "time": "13:00–16:00", "title": "Food Systems Summit: Scaling Resilient and Climate-Smart Solutions for the Critical Middle of Food Systems", "org": "Business Sweden", "loc": "Swedish Pavilion (Blue Zone)", "status": "Under review", "tags": [], "fp": "tbc"}, {"id": "A1-130", "date": "2026-11-13", "s": 840, "e": 900, "time": "14:00–15:00", "title": "The Food-and-Fuel Paradigm", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels"], "fp": "tbc"}, {"id": "A1-048", "date": "2026-11-13", "s": 1020, "e": 1140, "time": "17:00–19:00", "title": "CHLC Special Event on Industry and Business", "org": "COP30 HLC, CCT", "loc": "Special Event Room 1 Uzungol (Blue Zone)", "status": "Confirmed", "tags": ["electrification", "land-transport"], "fp": "Hande Turkyilmaz"}, {"id": "A1-031", "date": "2026-11-13", "s": 1050, "e": 1110, "time": "17:30–18:30", "title": "National Grid and AVEVA Reception: People Behind the Transition", "org": "REA, National Grid, AVEVA", "loc": "REA Pavilion (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-080", "date": "2026-11-13", "s": 1110, "e": 1200, "time": "18:30–20:00", "title": "Harnessing Electrification for Energy Access, Investment and Economic Development (IEA & Electrify Now)", "org": "IEA, Electrify Now", "loc": "tbc (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "tbc"}, {"id": "A1-140", "date": "2026-11-13", "s": null, "e": null, "time": "tbc", "title": "From intention to implementation: Pioneering industrial delivery models for sustainable energy technology deployment", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": ["green-industry", "gi-hubs", "gi-finance"], "fp": "tbc"}, {"id": "A1-131", "date": "2026-11-14", "s": 600, "e": 660, "time": "10:00–11:00", "title": "Clean Cooking at Scale: Delivering Universal Access", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels"], "fp": "tbc"}, {"id": "A1-132", "date": "2026-11-14", "s": 720, "e": 780, "time": "12:00–13:00", "title": "Integrated Biorefineries: Pathways to Profitability", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels"], "fp": "tbc"}, {"id": "A1-133", "date": "2026-11-14", "s": 840, "e": 900, "time": "14:00–15:00", "title": "Driving Down Emissions: Decarbonizing Road Transport", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels", "land-transport"], "fp": "tbc"}, {"id": "A1-066", "date": "2026-11-14", "s": null, "e": null, "time": "tbc", "title": "Implementing the Roadmap on Transitioning Away from Fossil Fuels: Partnerships for Action in the Next Critical Decade", "org": "COP30 Presidency (Brazil)", "loc": "Brazil Pavilion – Mutirão", "status": "Confirmed", "tags": ["taff"], "fp": "Ephraim França"}, {"id": "A1-134", "date": "2026-11-14", "s": null, "e": null, "time": "tbc", "title": "The Clean Cook-Off", "org": "GBA", "loc": "GBA Pavilion (Green Zone)", "status": "Under review", "tags": ["fuels"], "fp": "tbc"}, {"id": "A1-141", "date": "2026-11-14", "s": null, "e": null, "time": "tbc", "title": "From Commitments to Action: Advancing Gender-Responsive and Youth-Inclusive Skills and Leadership for a Just Energy Transition", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": [], "fp": "tbc"}, {"id": "A1-142", "date": "2026-11-14", "s": null, "e": null, "time": "tbc", "title": "Launch of the Youth Water-Energy-Food Nexus Initiative: youth-led solutions for climate resilience, from the Mediterranean to Small Island Developing States", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": [], "fp": "tbc"}, {"id": "A1-004", "date": "2026-11-16", "s": 540, "e": 600, "time": "09:00–10:00", "title": "From Pledge to Practice: High-Level Dialogue on AG4 Coalition contributions to transitioning away from fossil fuels", "org": "IISD", "loc": "Special Event Room 3 Assos (Blue Zone)", "status": "Confirmed", "tags": ["taff"], "fp": "tbc"}, {"id": "A1-087", "date": "2026-11-16", "s": 645, "e": 735, "time": "10:45–12:15", "title": "Clean Hydrogen in Practice: Building the Value Chain Link by Link", "org": "UNIDO", "loc": "UNIDO Pavilion", "status": "Under review", "tags": ["fuels", "green-industry", "gi-hydrogen"], "fp": "tbc"}, {"id": "A1-012", "date": "2026-11-16", "s": 930, "e": 990, "time": "15:30–16:30", "title": "COP 31 Priority Spotlight Event: Green Industrialization (Breakthrough Agenda)", "org": "UNIDO", "loc": "Special Event Room 4 Perge (Blue Zone)", "status": "Confirmed", "tags": ["green-industry", "gi-cross"], "fp": "Mohamed Hegazy"}, {"id": "A1-067", "date": "2026-11-16", "s": null, "e": null, "time": "tbc", "title": "Decarbonizing Urban Mobility: Municipal Implementation, Federal Policy, Financing, and Scaling Up", "org": "Belo Horizonte City Government", "loc": "Brazil Pavilion – Belém", "status": "Confirmed", "tags": ["land-transport"], "fp": "Mohamed Hegazy"}, {"id": "A1-068", "date": "2026-11-16", "s": null, "e": null, "time": "tbc", "title": "Beyond Borders: Partnerships for scaling a global industrial transition", "org": "LeadIT", "loc": "Brazil Pavilion – Mutirão", "status": "Confirmed", "tags": ["green-industry", "gi-steel", "gi-cement"], "fp": "Mohamed Hegazy"}, {"id": "A1-143", "date": "2026-11-16", "s": null, "e": null, "time": "tbc", "title": "Launch of the Global Cleantech Innovation Index (GCII)", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": ["green-industry", "gi-cross"], "fp": "tbc"}, {"id": "A1-144", "date": "2026-11-16", "s": null, "e": null, "time": "tbc", "title": "From Climate Shocks to Resilient Power: Mobilising an Energy Resilience Programme for LDCs to Protect Lives, Livelihoods and Industry", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": ["electrification"], "fp": "tbc"}, {"id": "A1-151", "date": "2026-11-16", "s": null, "e": null, "time": "tbc", "title": "Industrial Decarbonization Through Climate Technologies: Pathways for Deployment at Scale Across Economies", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": ["green-industry"], "fp": "tbc"}, {"id": "A1-145", "date": "2026-11-17", "s": null, "e": null, "time": "tbc", "title": "Global Programme on Climate-Resilient Renewable Energy Systems (G-RES) for Small Island States", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": ["electrification"], "fp": "tbc"}, {"id": "A1-153", "date": "2026-11-17", "s": null, "e": null, "time": "tbc", "title": "Industry-biodiversity nexus in decarbonization of hard-to-abate sectors", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": ["green-industry"], "fp": "tbc"}, {"id": "A1-032", "date": "2026-11-18", "s": 1005, "e": 1095, "time": "16:45–18:15", "title": "UNFCCC Official Side Event: Resilient and Intelligent Grids Enabling Electrification", "org": "REA", "loc": "tbc (Blue Zone)", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-117", "date": "2026-11-18", "s": null, "e": null, "time": "tbc", "title": "Dialogue on Electrification for Resilient and Inclusive Growth in Emerging Markets", "org": "Sabancı Holding, UNEZA", "loc": "tbc", "status": "Under review", "tags": ["electrification"], "fp": "Ephraim França"}, {"id": "A1-044", "date": "2026-11-19", "s": 840, "e": 960, "time": "14:00–16:00", "title": "Mandated High-Level Event of Global Climate Action", "org": "tbc", "loc": "Plenary Hall 2 (Blue Zone)", "status": "Confirmed", "tags": [], "fp": "Ephraim França"}, {"id": "A1-082", "date": "2026-11-19", "s": 990, "e": 1080, "time": "16:30–18:00", "title": "Financing Electrification & Energy Efficiency", "org": "Solar Impulse Foundation, Institut de la Finance Durable", "loc": "Side Event Room Green (Blue Zone)", "status": "Under review", "tags": ["electrification", "efficiency"], "fp": "tbc"}, {"id": "A1-155", "date": "2026-11-19", "s": null, "e": null, "time": "tbc", "title": "Navigating Trade-Related Climate Measures: CBAM and Industrial Competitiveness", "org": "UNIDO", "loc": "tbc", "status": "Under review", "tags": ["green-industry"], "fp": "tbc"}, {"id": "A1-076", "date": null, "s": 780, "e": null, "time": "13:00–tbc", "title": "Resilient Supply Chains with Renewable Fuels", "org": "Neste", "loc": "Finland Pavilion", "status": "Confirmed", "tags": ["fuels"], "fp": "tbc"}]</script>
+<script>
+(function(){
+  const DATA = JSON.parse(document.getElementById('data').textContent);
+  const SECTORS = [
+    ['electrification','Electrification'],['efficiency','Efficiency'],['fuels','Fuels'],
+    ['land-transport','Land transport'],['maritime','Maritime'],['taff','Transition away from fossil fuels'],
+    ['green-industry','Green industry']];
+  const SKEYS = SECTORS.map(s=>s[0]);
+  const SLABEL = Object.fromEntries(SECTORS.concat([['all','Axis-wide'],['none','Not tagged']]));
+  const DAYS = []; for(let d=9; d<=20; d++) DAYS.push('2026-11-'+String(d).padStart(2,'0'));
+  const DN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const fmtDay = iso => { const dt=new Date(iso+'T12:00:00'); return {dn:DN[dt.getDay()], dd:dt.getDate()+' Nov'}; };
+  const hhmm = m => String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+  const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  DATA.forEach(e=>{
+    e.sec = e.tags.filter(t=>SKEYS.includes(t));
+    e.all = e.tags.includes('all');
+    e.main = e.all ? 'all' : (e.sec[0] || 'none');
+    e.end = e.s==null ? null : (e.e!=null ? e.e : e.s+60);
+    e.open = e.s!=null && e.e==null;
+    e.clashWith = [];
+  });
+  // Same-topic clashes: same day, both timed, overlapping, sharing a sector ("all" excluded).
+  const timed = DATA.filter(e=>e.date && e.s!=null);
+  for(let i=0;i<timed.length;i++) for(let j=i+1;j<timed.length;j++){
+    const a=timed[i], b=timed[j];
+    if(a.date!==b.date || !(a.s<b.end && b.s<a.end)) continue;
+    const shared=a.sec.filter(t=>b.sec.includes(t));
+    if(shared.length){ a.clashWith.push([b,shared]); b.clashWith.push([a,shared]); }
+  }
+
+  const byDay = Object.fromEntries(DAYS.map(d=>[d,DATA.filter(e=>e.date===d)]));
+  const firstBusy = DAYS.reduce((best,d)=>byDay[d].length>byDay[best].length?d:best, DAYS[0]);
+  // Weeks: Mon-Sat of week 1, Mon-Fri of week 2 (Sunday 15 only if it has events)
+  const WEEKS = [
+    {n:1, label:'9–14 Nov', days:DAYS.filter(d=>d<='2026-11-14')},
+    {n:2, label:'16–20 Nov', days:DAYS.filter(d=>d>='2026-11-16' || (d==='2026-11-15' && byDay[d].length))}];
+  const state = {day:firstBusy, mode:'week', week:1, sectors:new Set(), clashOnly:false, venue:null};
+  try{ const s=JSON.parse(localStorage.getItem('a1tl2')||'{}'); if(DAYS.includes(s.day)) state.day=s.day; if(['week','venue','sector'].includes(s.mode)) state.mode=s.mode; if(s.week===1||s.week===2) state.week=s.week; }catch(_){}
+  const save = ()=>{ try{ localStorage.setItem('a1tl2', JSON.stringify({day:state.day, mode:state.mode, week:state.week})); }catch(_){} };
+
+  // Venue border colours (week view): most-used venues get a distinct colour, the rest grey
+  const VPAL = ['#D1495B','#2E86AB','#E8A33D','#6A4C93','#1B998B','#F26DAA','#8C5E34','#3F7D20','#0B3C5D','#C05746','#5B8E7D','#B279A7'];
+  const vname = loc => { const m=loc.match(/^(.*?)\s*\((Blue Zone|Green Zone)\)$/); const n=m?m[1]:loc; return /^tbc$/i.test(n)?'Venue to be confirmed':n; };
+  const vcount = {};
+  DATA.filter(e=>e.date && e.s!=null).forEach(e=>{ const n=vname(e.loc); if(n!=='Venue to be confirmed') vcount[n]=(vcount[n]||0)+1; });
+  const VCOL = {};
+  Object.keys(vcount).sort((a,b)=>vcount[b]-vcount[a]||a.localeCompare(b)).forEach((n,i)=>{ if(i<VPAL.length && vcount[n]>1) VCOL[n]=VPAL[i]; });
+  const vcol = e => VCOL[vname(e.loc)] || 'var(--vb)';
+
+  const matches = e => (state.sectors.size===0 || e.all || e.sec.some(t=>state.sectors.has(t))) && (!state.clashOnly || e.clashWith.length>0);
+
+  // Days
+  const daysEl=document.getElementById('days');
+  DAYS.forEach(d=>{
+    const f=fmtDay(d), n=byDay[d].length;
+    const b=document.createElement('button'); b.className='day'+(n?'':' empty'); b.dataset.day=d;
+    b.innerHTML=`<span class="dn">${f.dn}</span><span class="dd">${f.dd}</span><span class="dc">${n} event${n===1?'':'s'}</span>`;
+    b.onclick=()=>{state.day=d; save(); render();};
+    daysEl.appendChild(b);
+  });
+  // Chips
+  const chipsEl=document.getElementById('chips');
+  SECTORS.forEach(([k,l])=>{
+    const b=document.createElement('button'); b.className='chip'; b.dataset.k=k; b.style.setProperty('--c',`var(--c-${k})`);
+    b.innerHTML=`<i></i>${l}`; b.setAttribute('aria-pressed','false');
+    b.onclick=()=>{ state.sectors.has(k)?state.sectors.delete(k):state.sectors.add(k); render(); };
+    chipsEl.appendChild(b);
+  });
+  const mw=document.getElementById('m-week'), mv=document.getElementById('m-venue'), ms=document.getElementById('m-sector');
+  mw.onclick=()=>{state.mode='week'; save(); render();};
+  mv.onclick=()=>{state.mode='venue'; save(); render();};
+  ms.onclick=()=>{state.mode='sector'; save(); render();};
+  // Weeks
+  const weeksEl=document.getElementById('weeks');
+  WEEKS.forEach(w=>{
+    const n=w.days.reduce((s,d)=>s+byDay[d].length,0);
+    const b=document.createElement('button'); b.className='wk'; b.dataset.w=w.n;
+    b.innerHTML=`<b>Week ${w.n}</b>${w.label} · ${n} events`;
+    b.onclick=()=>{state.week=w.n; save(); render();};
+    weeksEl.appendChild(b);
+  });
+  const vlegEl=document.getElementById('vlegend');
+  document.getElementById('clashonly').onchange=e=>{state.clashOnly=e.target.checked; render();};
+
+  function venueLane(loc){
+    const m=loc.match(/^(.*?)\s*\((Blue Zone|Green Zone)\)$/);
+    let name=m?m[1]:loc, zone=m?m[2]:'';
+    if(/^tbc$/i.test(name)) name='Venue to be confirmed';
+    const order = /^Special Event|^Side Event|^Plenary|GCA Roundtable/.test(name)?0 : /^Venue to be/.test(name)?3 : /Pavilion|Lounge|Hub|Hall/.test(name)?1 : 2;
+    return {key:loc, name, zone, order};
+  }
+
+  function pack(evs){
+    const rows=[]; evs.sort((a,b)=>a.s-b.s||b.end-a.end);
+    evs.forEach(e=>{ let r=rows.findIndex(end=>end<=e.s); if(r<0){r=rows.length; rows.push(0);} rows[r]=e.end; e._r=r; });
+    return Math.max(rows.length,1);
+  }
+
+  const LEG_DAY = `<span><span class="k"></span>Confirmed</span><span><span class="k r"></span>Under review (details may change)</span>`+
+    `<span><span class="k c"></span>Same-topic clash</span><span>Faded right edge = end time not yet known (shown as 1 hour)</span>`;
+  const LEG_WEEK = `<span>Fill colour = sector · Border colour = venue (key above; grey = other or one-off venues)</span>`+
+    `<span>Solid border = Confirmed · Dashed = Under review</span><span><b style="color:var(--clash)">!</b> = same-topic clash</span>`+
+    `<span>End time unknown = shown as 1 hour</span>`;
+
+  function render(){
+    const wk = state.mode==='week';
+    daysEl.hidden = wk; weeksEl.hidden = !wk; document.getElementById('vrow').hidden = !wk;
+    document.getElementById('legend').innerHTML = wk ? LEG_WEEK : LEG_DAY;
+    weeksEl.querySelectorAll('.wk').forEach(b=>b.setAttribute('aria-pressed', String(+b.dataset.w===state.week)));
+    daysEl.querySelectorAll('.day').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.day===state.day)));
+    chipsEl.querySelectorAll('.chip').forEach(b=>{ const on=state.sectors.has(b.dataset.k); b.setAttribute('aria-pressed',String(on)); b.classList.toggle('off', state.sectors.size>0 && !on); });
+    mw.setAttribute('aria-pressed',String(wk)); mv.setAttribute('aria-pressed',String(state.mode==='venue')); ms.setAttribute('aria-pressed',String(state.mode==='sector'));
+    if(wk) return renderWeek();
+
+    const all = byDay[state.day];
+    const evs = all.filter(matches);
+    const timedEvs = evs.filter(e=>e.s!=null), tbcEvs = evs.filter(e=>e.s==null);
+    const clashN = timedEvs.filter(e=>e.clashWith.length).length;
+    const f=fmtDay(state.day);
+    document.getElementById('summary').innerHTML =
+      `<span><b>${f.dn} ${f.dd}</b></span><span><b>${timedEvs.length}</b> timed</span><span><b>${tbcEvs.length}</b> time to be confirmed</span>`+
+      `<span class="cl"><b>${clashN}</b> in a same-topic clash</span>`+
+      (state.sectors.size?`<span>Filtered to ${[...state.sectors].map(k=>SLABEL[k]).join(', ')}</span>`:'');
+
+    // Hour range
+    let h0=8, h1=20;
+    timedEvs.forEach(e=>{ h0=Math.min(h0,Math.floor(e.s/60)); h1=Math.max(h1,Math.ceil(e.end/60)); });
+    const hours=h1-h0, start=h0*60;
+    const board=document.getElementById('board'); board.style.setProperty('--hours',hours);
+    const px = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--px'))||132;
+
+    // Lanes
+    let lanes=[];
+    if(state.mode==='venue'){
+      const map=new Map();
+      timedEvs.forEach(e=>{ const v=venueLane(e.loc); if(!map.has(v.key)) map.set(v.key,{...v,evs:[]}); map.get(v.key).evs.push(e); });
+      lanes=[...map.values()].sort((a,b)=>a.order-b.order||a.name.localeCompare(b.name));
+    } else {
+      const keys=['all',...SKEYS,'none'];
+      lanes=keys.map(k=>({key:k, name:SLABEL[k], zone:'', sector:k,
+        evs:timedEvs.filter(e=> k==='all'?e.all : k==='none'?(!e.all&&!e.sec.length) : e.sec.includes(k))}))
+        .filter(l=>l.evs.length && (state.sectors.size===0 || l.sector==='all' || state.sectors.has(l.sector)));
+    }
+
+    let html=`<div class="hrs"><div class="corner"></div>`;
+    for(let h=h0;h<h1;h++) html+=`<span>${String(h).padStart(2,'0')}:00</span>`;
+    html+=`</div>`;
+    if(!lanes.length) html+=`<div class="empty-day">No timed events${state.sectors.size||state.clashOnly?' match these filters':''} on this day yet.</div>`;
+    lanes.forEach(l=>{
+      const copies=l.evs.map(e=>Object.assign(Object.create(e),{s:e.s,end:e.end}));
+      const rows=pack(copies);
+      const sub = state.mode==='venue' ? (l.zone||'&nbsp;') : `${l.evs.length} event${l.evs.length===1?'':'s'}`;
+      const sw = state.mode==='sector' ? `<span class="sw" style="--c:var(--c-${l.sector})"></span>` : '';
+      html+=`<div class="lane"><div class="name"><strong>${sw}${esc(l.name)}</strong><small>${sub}</small></div>`+
+            `<div class="track" style="height:calc(${rows} * var(--row) + 8px)">`;
+      copies.forEach(e=>{
+        const left=(e.s-start)/60*px+2, width=Math.max((e.end-e.s)/60*px-4, 30);
+        const col = state.mode==='sector' && l.sector!=='all' && l.sector!=='none' ? l.sector : e.main;
+        const cls=['ev', e.status==='Confirmed'?'':'review', e.open?'open':'', e.clashWith.length?'clash':''].join(' ');
+        html+=`<button class="${cls}" data-id="${e.id}" style="--c:var(--c-${col}); left:${left}px; width:${width}px; top:calc(${e._r} * var(--row) + 4px)" title="${esc(e.title)}">`+
+              `<span class="t">${hhmm(e.s)}–${e.open?'tbc':hhmm(e.end)}</span><span class="n">${esc(e.title)}</span></button>`;
+      });
+      html+=`</div></div>`;
+    });
+    board.classList.remove('weekmode');
+    board.innerHTML=html;
+
+    // TBC list (this day) and undated
+    const und = DATA.filter(e=>!e.date).filter(matches);
+    let t='';
+    if(tbcEvs.length) t+=`<h2>${f.dn} ${f.dd}: time to be confirmed (${tbcEvs.length})</h2><div class="cards">${tbcEvs.map(card).join('')}</div>`;
+    if(und.length) t+=`<h2>Date to be confirmed (${und.length})</h2><div class="cards">${und.map(card).join('')}</div>`;
+    document.getElementById('tbc').innerHTML=t;
+  }
+
+  // Side-by-side columns for overlapping events within one day
+  function layoutCols(evs){
+    evs.sort((a,b)=>a.s-b.s||b.end-a.end);
+    let cluster=[], cend=-1;
+    const flush=()=>{ const cols=[]; cluster.forEach(e=>{ let c=cols.findIndex(end=>end<=e.s); if(c<0){c=cols.length; cols.push(0);} cols[c]=e.end; e._c=c; }); cluster.forEach(e=>e._n=cols.length); cluster=[]; };
+    evs.forEach(e=>{ if(cluster.length && e.s>=cend){ flush(); cend=-1; } cluster.push(e); cend=Math.max(cend,e.end); });
+    if(cluster.length) flush();
+  }
+
+  function renderWeek(){
+    const W = WEEKS.find(w=>w.n===state.week), days = W.days;
+    const evsAll = days.flatMap(d=>byDay[d]).filter(matches);
+    const timedEvs = evsAll.filter(e=>e.s!=null), tbcEvs = evsAll.filter(e=>e.s==null);
+    const clashN = timedEvs.filter(e=>e.clashWith.length).length;
+    document.getElementById('summary').innerHTML =
+      `<span><b>Week ${W.n}</b> · ${W.label}</span><span><b>${timedEvs.length}</b> timed</span><span><b>${tbcEvs.length}</b> time to be confirmed</span>`+
+      `<span class="cl"><b>${clashN}</b> in a same-topic clash</span>`+
+      (state.sectors.size?`<span>Filtered to ${[...state.sectors].map(k=>SLABEL[k]).join(', ')}</span>`:'')+
+      (state.venue?`<span>Highlighting ${esc(state.venue)}</span>`:'');
+
+    // Venue key for this week (click to highlight one venue)
+    const vs={}; timedEvs.forEach(e=>{ const n=vname(e.loc); vs[n]=(vs[n]||0)+1; });
+    if(state.venue && !vs[state.venue]) state.venue=null;
+    const vkeys = Object.keys(vs).sort((a,b)=>(VCOL[a]?0:1)-(VCOL[b]?0:1)||vs[b]-vs[a]||a.localeCompare(b));
+    vlegEl.innerHTML = vkeys.map(n=>`<button class="vchip${state.venue&&state.venue!==n?' off':''}" data-v="${esc(n)}" aria-pressed="${state.venue===n}" style="--v:${VCOL[n]||'var(--vb)'}">${esc(n)}<small>${vs[n]}</small></button>`).join('')
+      || '<span style="font-size:13px;color:var(--muted)">No timed events this week.</span>';
+    vlegEl.querySelectorAll('.vchip').forEach(b=>b.onclick=()=>{ state.venue = state.venue===b.dataset.v?null:b.dataset.v; render(); });
+
+    let h0=8, h1=20;
+    timedEvs.forEach(e=>{ h0=Math.min(h0,Math.floor(e.s/60)); h1=Math.max(h1,Math.ceil(e.end/60)); });
+    const hh = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||56;
+    const H=(h1-h0)*hh, start=h0*60, pad=n=>String(n).padStart(2,'0');
+
+    // Lay out each day first; busy days (many overlaps) get wider columns
+    const perDay = days.map(d=>{ const evs=timedEvs.filter(e=>e.date===d).map(e=>Object.assign(Object.create(e),{s:e.s,end:e.end})); layoutCols(evs); return evs; });
+    const cols = perDay.map(evs=>Math.max(1, ...evs.map(e=>e._n)));
+    const tmpl = `var(--gut) ` + cols.map(n=>`minmax(${Math.max(118, n*78)}px, ${Math.max(1.4, n)}fr)`).join(' ');
+    let html=`<div class="wgrid" style="grid-template-columns:${tmpl}; min-width:0"><div class="whead corner"></div>`;
+    days.forEach(d=>{ const f=fmtDay(d), l=byDay[d].filter(matches);
+      html+=`<div class="whead"><span class="dn">${f.dn}</span><span class="dd">${f.dd}</span><span class="dc">${l.filter(e=>e.s!=null).length} timed · ${l.filter(e=>e.s==null).length} tbc</span></div>`; });
+    html+=`<div class="wtimes" style="height:${H}px">`;
+    for(let h=h0+1; h<h1; h++) html+=`<span style="top:${(h-h0)*hh}px">${pad(h)}:00</span>`;
+    html+=`</div>`;
+    days.forEach((d,i)=>{
+      const evs = perDay[i];
+      html+=`<div class="wcol" style="height:${H}px">`;
+      evs.forEach(e=>{
+        const top=(e.s-start)/60*hh+1, ht=Math.max((e.end-e.s)/60*hh-2, 24), lines=Math.max(1, Math.floor((ht-(ht>=70?30:18))/14));
+        const cls=['wev', e.status==='Confirmed'?'':'review', e.clashWith.length?'clash':'', state.venue&&vname(e.loc)!==state.venue?'dim':''].join(' ');
+        html+=`<button class="${cls}" data-id="${e.id}" title="${esc(e.title+' · '+vname(e.loc))}" style="--c:var(--c-${e.main}); --v:${vcol(e)}; --lines:${lines}; top:${top}px; height:${ht}px; left:${e._c/e._n*100}%; width:calc(${100/e._n}% - 2px)">`+
+              `<span class="t">${hhmm(e.s)}–${e.open?'tbc':hhmm(e.end)}</span><span class="n">${esc(e.title)}</span>${ht>=70?`<span class="vn">${esc(vname(e.loc))}</span>`:''}</button>`;
+      });
+      html+=`</div>`;
+    });
+    html+=`</div>`;
+    if(!timedEvs.length) html+=`<div class="empty-day">No timed events${state.sectors.size||state.clashOnly?' match these filters':''} this week yet.</div>`;
+    const board=document.getElementById('board');
+    board.classList.add('weekmode'); board.innerHTML=html;
+
+    const und = DATA.filter(e=>!e.date).filter(matches);
+    let t='';
+    if(tbcEvs.length){
+      t+=`<h2>Week ${W.n}: time to be confirmed (${tbcEvs.length})</h2>`;
+      days.forEach(d=>{ const l=tbcEvs.filter(e=>e.date===d); if(l.length){ const f=fmtDay(d); t+=`<div class="daygroup"><h3>${f.dn} ${f.dd} (${l.length})</h3><div class="cards">${l.map(card).join('')}</div></div>`; } });
+    }
+    if(und.length) t+=`<h2>Date to be confirmed (${und.length})</h2><div class="cards">${und.map(card).join('')}</div>`;
+    document.getElementById('tbc').innerHTML=t;
+  }
+
+  function tagDots(e){
+    const ks = e.all?['all']:(e.sec.length?e.sec:['none']);
+    return `<span class="dots">${ks.map(k=>`<i style="--c:var(--c-${k})">${esc(SLABEL[k])}</i>`).join('')}</span>`;
+  }
+  function card(e){
+    const v=venueLane(e.loc);
+    return `<button class="card" data-id="${e.id}"><span class="n">${esc(e.title)}</span>`+
+      `<span class="m">${esc(e.time==='tbc'?'Time tbc':e.time)} · ${esc(v.name)}${v.zone?' ('+v.zone+')':''} · ${esc(e.org)}</span>${tagDots(e)}</button>`;
+  }
+
+  const dlg=document.getElementById('dlg'), body=document.getElementById('dlgbody');
+  document.addEventListener('click',ev=>{
+    const b=ev.target.closest('[data-id]'); if(!b) return;
+    const e=DATA.find(x=>x.id===b.dataset.id); if(!e) return;
+    const f=e.date?fmtDay(e.date):null;
+    const gi = e.tags.filter(t=>t.startsWith('gi-')).map(t=>t.slice(3)).join(', ');
+    body.innerHTML=`<h3>${esc(e.title)}</h3><dl>`+
+      `<dt>When</dt><dd>${f?f.dn+' '+f.dd:'Date tbc'} · ${esc(e.time==='tbc'?'time tbc':e.time)}</dd>`+
+      `<dt>Where</dt><dd>${esc(e.loc)}</dd>`+
+      `<dt>Organiser</dt><dd>${esc(e.org)}</dd>`+
+      `<dt>Status</dt><dd>${esc(e.status)}</dd>`+
+      `<dt>Sectors</dt><dd>${tagDots(e)}${gi?`<div style="margin-top:4px;font-size:12px;color:var(--muted)">Industry focus: ${esc(gi)}</div>`:''}</dd>`+
+      `<dt>CCT contact</dt><dd>${esc(e.fp==='tbc'?'To be confirmed':e.fp)}</dd>`+
+      `<dt>Ref.</dt><dd style="font-family:var(--f-mono)">${esc(e.id)}</dd></dl>`+
+      (e.clashWith.length?`<div class="clashes"><b>Overlaps with ${e.clashWith.length} event${e.clashWith.length>1?'s':''} on the same topic</b>`+
+        e.clashWith.map(([o,sh])=>`<div>${hhmm(o.s)}–${o.open?'tbc':hhmm(o.end)} · ${esc(o.title)} <span style="color:var(--muted)">(${esc(o.loc)}; ${sh.map(k=>SLABEL[k]).join(', ')})</span></div>`).join('')+`</div>`:'')+
+      `<button class="close" id="dlgclose">Close</button>`;
+    document.getElementById('dlgclose').onclick=()=>dlg.close();
+    if(dlg.showModal) dlg.showModal();
+  });
+  dlg.addEventListener('click',ev=>{ if(ev.target===dlg) dlg.close(); });
+  window.addEventListener('resize',()=>{ clearTimeout(window._rt); window._rt=setTimeout(render,150); });
+  render();
+})();
+</script>
+
+</body></html>
