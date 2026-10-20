@@ -69,8 +69,8 @@ h1{font:500 clamp(30px,4.5vw,46px)/1.1 var(--f-display); margin:0; text-wrap:bal
 .chip i{width:9px; height:9px; border-radius:50%; background:var(--c)}
 .chip[aria-pressed="true"]{background:color-mix(in srgb,var(--c) 22%,var(--surface)); border-color:var(--c)}
 .chip.off{opacity:.45}
-.seg.wrap{max-width:100%; overflow-x:auto; scrollbar-width:thin}
-.seg.wrap button{flex:0 0 auto; white-space:nowrap}
+.seg.axseg{max-width:100%; overflow-x:auto; scrollbar-width:thin}
+.seg.axseg button{flex:0 0 auto; white-space:nowrap}
 .chip.ag b{white-space:nowrap}
 .seg button small{font:400 11px var(--f-mono); opacity:.75; margin-left:5px}
 .chip.ag{max-width:300px; gap:6px}
@@ -207,7 +207,7 @@ dialog::backdrop{background:rgba(10,16,22,.45)}
   <section class="controls" aria-label="Filters">
     <div class="row">
       <span class="lbl">Axis</span>
-      <div class="seg wrap" id="axes" role="group" aria-label="Axis"></div>
+      <div class="seg axseg" id="axes" role="group" aria-label="Axis"></div>
     </div>
     <div class="row" id="agrow">
       <span class="lbl">Activation Group</span>
