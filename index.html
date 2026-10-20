@@ -69,7 +69,9 @@ h1{font:500 clamp(30px,4.5vw,46px)/1.1 var(--f-display); margin:0; text-wrap:bal
 .chip i{width:9px; height:9px; border-radius:50%; background:var(--c)}
 .chip[aria-pressed="true"]{background:color-mix(in srgb,var(--c) 22%,var(--surface)); border-color:var(--c)}
 .chip.off{opacity:.45}
-.seg.wrap{flex-wrap:wrap}
+.seg.wrap{max-width:100%; overflow-x:auto; scrollbar-width:thin}
+.seg.wrap button{flex:0 0 auto; white-space:nowrap}
+.chip.ag b{white-space:nowrap}
 .seg button small{font:400 11px var(--f-mono); opacity:.75; margin-left:5px}
 .chip.ag{max-width:300px; gap:6px}
 .chip.ag span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
