@@ -14,7 +14,7 @@
 :root{
   --bg:#EBF0FA; --surface:#FFFFFF; --fg:#0F1519; --muted:#373E4E; --faint:#717E96; --line:#A5B3C9; --line-soft:#E3E9F4;
   --accent:#0000AB; --accent-hover:#0A0040; --accent-fg:#FFFFFF; --head:#0000AB; --clash:#C8102E;
-  --gold:#8A6800; --gold-bg:#FDF3D6; --mini:#0000AB; --mini-bg:#E6EAFA;
+  --gold:#8A6800; --gold-bg:#FDF3D6; --hos:#B34700; --hos-bg:#FFE2C7; --min:#8A6800; --min-bg:#FDF0C4; --aa:#0000AB; --aa-bg:#E3E8FA;
   --sp-aa:#0F8C7D; --sp-aa-bg:#DDF3EF; --sp-blue:#0000AB; --sp-blue-bg:#E6EAFA; --sp-green:#3F7D20; --sp-green-bg:#E5F2DC; --sp-off:#717E96; --sp-off-bg:#EEF1F6;
   --c-electrification:#0000AB; --c-efficiency:#26E0CF; --c-fuels:#F5C300; --c-land-transport:#8900FF;
   --c-maritime:#8A85DE; --c-taff:#FF37D5; --c-green-industry:#0F8C7D; --c-all:#373E4E; --c-none:#A5B3C9;
@@ -26,7 +26,7 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0F1519; --surface:#1A2129; --fg:#EBF0FA; --muted:#A5B3C9; --faint:#8D99AE; --line:#373E4E; --line-soft:#232B35;
   --accent:#8A85DE; --accent-hover:#A9A5EA; --accent-fg:#0A0040; --head:#EBF0FA; --clash:#FF6B81;
-  --gold:#F2C94C; --gold-bg:#3A3110; --mini:#B9B5F2; --mini-bg:#25285A;
+  --gold:#F2C94C; --gold-bg:#3A3110; --hos:#FFB070; --hos-bg:#3D2410; --min:#F2C94C; --min-bg:#3A3110; --aa:#B9B5F2; --aa-bg:#25285A;
   --sp-aa:#3CC4AC; --sp-aa-bg:#123A35; --sp-blue:#B9B5F2; --sp-blue-bg:#25285A; --sp-green:#8CCB6A; --sp-green-bg:#1F3517; --sp-off:#A5B3C9; --sp-off-bg:#232B35;
   --c-electrification:#8A85DE; --c-efficiency:#26E0CF; --c-fuels:#F5C300; --c-land-transport:#B266FF;
   --c-maritime:#C4C1F0; --c-taff:#FF37D5; --c-green-industry:#3CC4AC; --c-all:#A5B3C9; --c-none:#717E96;
@@ -34,7 +34,7 @@
 :root[data-theme="dark"]{
   --bg:#0F1519; --surface:#1A2129; --fg:#EBF0FA; --muted:#A5B3C9; --faint:#8D99AE; --line:#373E4E; --line-soft:#232B35;
   --accent:#8A85DE; --accent-hover:#A9A5EA; --accent-fg:#0A0040; --head:#EBF0FA; --clash:#FF6B81;
-  --gold:#F2C94C; --gold-bg:#3A3110; --mini:#B9B5F2; --mini-bg:#25285A;
+  --gold:#F2C94C; --gold-bg:#3A3110; --hos:#FFB070; --hos-bg:#3D2410; --min:#F2C94C; --min-bg:#3A3110; --aa:#B9B5F2; --aa-bg:#25285A;
   --sp-aa:#3CC4AC; --sp-aa-bg:#123A35; --sp-blue:#B9B5F2; --sp-blue-bg:#25285A; --sp-green:#8CCB6A; --sp-green-bg:#1F3517; --sp-off:#A5B3C9; --sp-off-bg:#232B35;
   --c-electrification:#8A85DE; --c-efficiency:#26E0CF; --c-fuels:#F5C300; --c-land-transport:#B266FF;
   --c-maritime:#C4C1F0; --c-taff:#FF37D5; --c-green-industry:#3CC4AC; --c-all:#A5B3C9; --c-none:#717E96;
@@ -112,12 +112,12 @@ details.how[open] summary{margin-bottom:8px}
 
 /* Badges */
 .bdg{display:inline-flex; align-items:center; gap:3px; font:700 11px/1 var(--f-body); padding:3px 6px; border-radius:var(--r-sm); white-space:nowrap; letter-spacing:.01em}
-.lv3{color:var(--gold); background:var(--gold-bg)}
-.lv2{color:var(--mini); background:var(--mini-bg)}
+.lv3{color:var(--hos); background:var(--hos-bg)}
+.lv2{color:var(--min); background:var(--min-bg)}
 .lv1{color:var(--muted); background:transparent; border:1px solid var(--line); font-weight:500}
 .sp{font-weight:500}
-.sp-aa{color:var(--sp-aa); background:var(--sp-aa-bg)}
-.sp-blue{color:var(--sp-blue); background:var(--sp-blue-bg)}
+.sp-aa{color:var(--aa); background:var(--aa-bg)}
+.sp-blue{color:var(--muted); background:transparent; border:1px solid var(--line)}
 .sp-green{color:var(--sp-green); background:var(--sp-green-bg)}
 .sp-off,.sp-tbc{color:var(--sp-off); background:var(--sp-off-bg)}
 .st-rev{color:var(--gold); border:1px dashed var(--gold); background:transparent; font-weight:500}
@@ -139,8 +139,9 @@ details.how[open] summary{margin-bottom:8px}
   background:var(--surface); border:1px solid var(--line-soft); border-left:4px solid var(--c); border-radius:var(--r-md); padding:10px 12px}
 .rev:hover{border-color:var(--line); border-left-color:var(--c)}
 .rev.review{border-left-style:dashed}
-.rev.lv3{background:linear-gradient(90deg, var(--gold-bg), var(--surface) 55%)}
-.rev.lv2{background:linear-gradient(90deg, var(--mini-bg), var(--surface) 55%)}
+.rev.g3{background:linear-gradient(90deg, var(--hos-bg), var(--surface) 55%)}
+.rev.g2{background:linear-gradient(90deg, var(--min-bg), var(--surface) 55%)}
+.rev.gaa{background:linear-gradient(90deg, var(--aa-bg), var(--surface) 55%)}
 .rev .tm{font:500 14px/1.25 var(--f-body); font-variant-numeric:tabular-nums}
 .rev .tm small{display:block; font-size:12px; color:var(--muted); font-weight:400}
 .rev .tm.tbc{color:var(--faint); font-style:italic}
@@ -178,7 +179,9 @@ details.how[open] summary{margin-bottom:8px}
   border:1px solid color-mix(in srgb,var(--c) 75%,transparent); background:color-mix(in srgb,var(--c) 20%,var(--surface));
   padding:3px 5px; overflow:hidden; display:grid; align-content:start; gap:1px; margin:0 1px}
 .wev.review{border-style:dashed; background:color-mix(in srgb,var(--c) 9%,var(--surface))}
-.wev.lv3{box-shadow:inset 0 3px 0 var(--gold)} .wev.lv2{box-shadow:inset 0 3px 0 var(--mini)}
+.wev.g3{background:linear-gradient(160deg, var(--hos-bg) 45%, color-mix(in srgb,var(--c) 20%,var(--surface))); box-shadow:inset 0 3px 0 var(--hos)}
+.wev.g2{background:linear-gradient(160deg, var(--min-bg) 45%, color-mix(in srgb,var(--c) 20%,var(--surface))); box-shadow:inset 0 3px 0 var(--min)}
+.wev.gaa{background:linear-gradient(160deg, var(--aa-bg) 45%, color-mix(in srgb,var(--c) 20%,var(--surface))); box-shadow:inset 0 3px 0 var(--aa)}
 .wev .t{font:500 10px/1.1 var(--f-body); color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums; display:flex; gap:4px; align-items:center}
 .wev .t .code{font-weight:700; font-size:9px; padding:1px 3px; border-radius:2px}
 .wev .n{font:600 11px/1.25 var(--f-body); overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:var(--lines,3); overflow-wrap:anywhere}
@@ -198,7 +201,9 @@ details.how[open] summary{margin-bottom:8px}
 .ev{--c:var(--c-none); position:absolute; height:calc(var(--row) - 6px); border-radius:6px; text-align:left; cursor:pointer; color:var(--fg);
   border:1px solid color-mix(in srgb,var(--c) 70%,transparent); background:color-mix(in srgb,var(--c) 22%,var(--surface)); padding:4px 7px; overflow:hidden; display:grid; align-content:start; gap:1px}
 .ev.review{border-style:dashed; background:color-mix(in srgb,var(--c) 10%,var(--surface))}
-.ev.lv3{box-shadow:inset 0 3px 0 var(--gold)} .ev.lv2{box-shadow:inset 0 3px 0 var(--mini)}
+.ev.g3{background:linear-gradient(90deg, var(--hos-bg) 45%, color-mix(in srgb,var(--c) 22%,var(--surface))); box-shadow:inset 0 3px 0 var(--hos)}
+.ev.g2{background:linear-gradient(90deg, var(--min-bg) 45%, color-mix(in srgb,var(--c) 22%,var(--surface))); box-shadow:inset 0 3px 0 var(--min)}
+.ev.gaa{background:linear-gradient(90deg, var(--aa-bg) 45%, color-mix(in srgb,var(--c) 22%,var(--surface))); box-shadow:inset 0 3px 0 var(--aa)}
 .ev .t{font:500 10.5px/1.1 var(--f-body); color:var(--muted); white-space:nowrap}
 .ev .n{font:600 12px/1.2 var(--f-body); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
 .daytabs{display:flex; gap:6px; overflow-x:auto}
@@ -269,10 +274,10 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
           <p>This list is crowdsourced. Partners across the Action Agenda share their events, and we keep it up to date together as details change. Only events that are confirmed or under review are shown; invitation-only events are not listed. If something is missing, wrong, or you are not sure, ask Mohamed Hegazy (CCT): <a href="mailto:mohamedhegazy@climatechampions.team">mohamedhegazy@climatechampions.team</a>.</p>
           <div class="keys">
             <span><span class="sw"></span>Colour = sector</span><span><span class="sw r"></span>Dashed = under review (details may change)</span>
-            <span><span class="bdg lv3">★★ Leaders</span> Heads of State / Leaders</span><span><span class="bdg lv2">★ Ministerial</span></span><span><span class="bdg lv1">High-level</span></span>
+            <span><span class="bdg lv3">★★ Leaders</span> Heads of State / Leaders (orange)</span><span><span class="bdg lv2">★ Ministerial</span> (yellow)</span><span><span class="bdg lv1">High-level</span></span>
           </div>
           <div class="keys">
-            <span><span class="bdg sp sp-aa">Action Agenda</span> GCA rooms, UNFCCC side event rooms, Action Agenda pavilion</span>
+            <span><span class="bdg sp sp-aa">Action Agenda</span> GCA rooms, UNFCCC side event rooms, Action Agenda pavilion (blue)</span>
             <span><span class="bdg sp sp-blue">Blue Zone</span> other Blue Zone pavilions</span><span><span class="bdg sp sp-green">Green Zone</span></span><span><span class="bdg sp sp-off">Off-site</span></span>
           </div>
           <p style="font-size:13px;color:var(--muted)">Possible clashes: two events that share a specific sector tag and overlap by 30 minutes or more on the same day. Events tagged as covering all Axis 1 sectors are not counted.</p>
@@ -415,11 +420,12 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
   // ---------- badges ----------
   const lvBadge = e => e.lv ? `<span class="bdg lv${e.lv}" title="${esc(e.level)}">${LV[e.level][2]}</span>` : '';
   const spBadge = e => SPC[e.space] ? `<span class="bdg sp sp-${SPC[e.space][1]}">${esc(e.space)}</span>` : '';
+  const grad = e => e.lv===3?'g3':e.lv===2?'g2':e.space==='Action Agenda'?'gaa':'';
   const stBadge = e => e.status==='Confirmed' ? '' : `<span class="bdg st-rev">Under review</span>`;
   const dots = e => { const ks=e.all?['all']:(e.sec.length?e.sec:[]); return ks.length?`<span class="dots">${ks.map(k=>`<i style="--c:var(--c-${k})">${esc(SLABEL[k])}</i>`).join('')}</span>`:''; };
   function row(e){
     const tm = e.s==null ? `<div class="tm tbc">Time tbc</div>` : `<div class="tm">${hhmm(e.s)}<small>–${e.open?'tbc':hhmm(e.end)}</small></div>`;
-    return `<button class="rev lv${e.lv}${e.status==='Confirmed'?'':' review'}" data-id="${esc(e.id)}" style="--c:var(--c-${e.main})">${tm}`+
+    return `<button class="rev lv${e.lv} ${grad(e)}${e.status==='Confirmed'?'':' review'}" data-id="${esc(e.id)}" style="--c:var(--c-${e.main})">${tm}`+
       `<div class="bd"><div class="tags">${lvBadge(e)}${spBadge(e)}${stBadge(e)}</div><div class="ti">${esc(e.title)}</div>`+
       `<div class="mt">${esc(e.org==='tbc'?'Organiser tbc':e.org)} · ${esc(e.venue)}</div>${dots(e)}</div></button>`;
   }
@@ -519,7 +525,7 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
       if(v==='all') state.listAll=true; else { state.listAll=false; state.day=v; if(state.q){ state.q=''; qEl.value=''; syncURL(); } }
       save(); render(); });
     // Key moments: Leaders and Ministerial events across the COP (hidden while searching)
-    const km = keyMoments(all, 'whole COP');
+    const km = '';
     let h='';
     (showAll?days:[state.day]).forEach(d=>{ const l=evs.filter(e=>e.date===d); if(!l.length) return; const f=fmtDay(d);
       const timed=l.filter(e=>e.s!=null).sort((a,b)=>a.s-b.s||b.lv-a.lv||a.title.localeCompare(b.title)), tbc=l.filter(e=>e.s==null).sort((a,b)=>b.lv-a.lv||a.title.localeCompare(b.title));
@@ -571,7 +577,7 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
       l.filter(e=>!e._hide).forEach(e=>{
         const top=(e.s-start)/60*hh+1, ht=Math.max((e.end-e.s)/60*hh-2,26), lines=Math.max(1,Math.floor((ht-19)/13.75));
         const sp=SPC[e.space];
-        html+=`<button class="wev lv${e.lv}${e.status==='Confirmed'?'':' review'}" data-id="${esc(e.id)}" title="${esc(e.title+' · '+e.venue)}" style="--c:var(--c-${e.main}); --lines:${lines}; top:${top}px; height:${ht}px; left:${e._c/e._n*100}%; width:calc(${100/e._n}% - 2px)">`+
+        html+=`<button class="wev lv${e.lv} ${grad(e)}${e.status==='Confirmed'?'':' review'}" data-id="${esc(e.id)}" title="${esc(e.title+' · '+e.venue)}" style="--c:var(--c-${e.main}); --lines:${lines}; top:${top}px; height:${ht}px; left:${e._c/e._n*100}%; width:calc(${100/e._n}% - 2px)">`+
           `<span class="t">${hhmm(e.s)}${sp?`<span class="code sp-${sp[1]}">${sp[2]}</span>`:''}${e.lv>=2?`<span class="code lv${e.lv}">${e.lv===3?'★★':'★'}</span>`:''}</span><span class="n">${esc(e.title)}</span></button>`;
       });
       m.forEach(mo=>{ const i=MORE.push(mo.evs)-1, top=(mo.s-start)/60*hh+2;
@@ -581,7 +587,7 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
     html+=`</div>`;
     let t='';
     if(tbc.length){ t+=`<div class="list" style="margin-top:16px">`; days.forEach(d=>{ const l=tbc.filter(e=>e.date===d); if(l.length){ const f=fmtDay(d); t+=`<section class="dsec"><h3>${f.dn} ${f.dd}: time to be confirmed (${l.length})</h3>${l.map(row).join('')}</section>`; } }); t+=`</div>`; }
-    $('main').innerHTML = keyMoments(evs, `week ${W.n}`)+(timed.length?`<div class="boardwrap">${html}</div>`:`<div class="empty-msg">No timed events match these filters this week.</div>`)+t;
+    $('main').innerHTML = (timed.length?`<div class="boardwrap">${html}</div>`:`<div class="empty-msg">No timed events match these filters this week.</div>`)+t;
     $('main').querySelectorAll('[data-more]').forEach(b=>b.onclick=()=>showList(`${MORE[+b.dataset.more].length} more events`, MORE[+b.dataset.more].map(x=>Object.getPrototypeOf(x))));
   }
 
@@ -607,7 +613,7 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
       const sub = l.space ? (SPC[l.space]?`<span class="bdg sp sp-${SPC[l.space][1]}" style="justify-self:start">${esc(l.space)}</span>`:`<small>${esc(l.space)}</small>`) : `<small>${l.evs.length} event${l.evs.length===1?'':'s'}</small>`;
       html+=`<div class="lane"><div class="name"><strong>${esc(l.name)}</strong>${sub}</div><div class="track" style="height:calc(${Math.max(rows.length,1)} * var(--row) + 8px)">`;
       cp.forEach(e=>{ const left=(e.s-start)/60*px+2, width=Math.max((e.end-e.s)/60*px-4,30), col=l.sector&&!['all','none'].includes(l.sector)?l.sector:e.main;
-        html+=`<button class="ev lv${e.lv}${e.status==='Confirmed'?'':' review'}" data-id="${esc(e.id)}" title="${esc(e.title)}" style="--c:var(--c-${col}); left:${left}px; width:${width}px; top:calc(${e._r} * var(--row) + 4px)"><span class="t">${hhmm(e.s)}–${e.open?'tbc':hhmm(e.end)}${e.lv>=2?' · '+(e.lv===3?'★★':'★'):''}</span><span class="n">${esc(e.title)}</span></button>`; });
+        html+=`<button class="ev lv${e.lv} ${grad(e)}${e.status==='Confirmed'?'':' review'}" data-id="${esc(e.id)}" title="${esc(e.title)}" style="--c:var(--c-${col}); left:${left}px; width:${width}px; top:calc(${e._r} * var(--row) + 4px)"><span class="t">${hhmm(e.s)}–${e.open?'tbc':hhmm(e.end)}${e.lv>=2?' · '+(e.lv===3?'★★':'★'):''}</span><span class="n">${esc(e.title)}</span></button>`; });
       html+=`</div></div>`; });
     html+=`</div>`;
     $('main').innerHTML = (timed.length?`<div class="boardwrap">${html}</div>`:`<div class="empty-msg">No timed events match these filters on this day.</div>`)+
