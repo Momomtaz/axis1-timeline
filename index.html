@@ -150,6 +150,16 @@ details.how[open] summary{margin-bottom:8px}
 .rev .mt{font-size:13px; color:var(--muted); overflow-wrap:anywhere}
 .dots{display:flex; gap:4px; flex-wrap:wrap}
 .dots i{--c:var(--c-none); font:500 11px/1 var(--f-body); font-style:normal; padding:3px 6px; border-radius:4px; background:color-mix(in srgb,var(--c) 16%,var(--surface)); color:var(--fg)}
+.km{display:grid; gap:8px; margin-bottom:18px}
+.km h2{font:500 20px/1.2 var(--f-display); color:var(--head); margin:0; display:flex; gap:10px; align-items:baseline; flex-wrap:wrap}
+.km h2 small{font:400 13px var(--f-body); color:var(--muted)}
+.kmrow{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin}
+.kmc{flex:0 0 240px; display:grid; gap:4px; align-content:start; text-align:left; cursor:pointer; background:var(--surface); border:1px solid var(--line-soft); border-top:3px solid var(--mini); border-radius:var(--r-md); padding:10px 12px}
+.kmc.lv3{border-top-color:var(--gold)}
+.kmc .bdg{justify-self:start}
+.kmw{font:500 12px/1.2 var(--f-body); color:var(--muted)}
+.kmt{font:600 14px/1.3 var(--f-body); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
+.kmv{font-size:12px; color:var(--muted)}
 .empty-msg{padding:28px 16px; color:var(--muted); text-align:center; background:var(--surface); border-radius:var(--r-lg)}
 
 /* Week view */
@@ -262,7 +272,7 @@ dialog::backdrop{background:rgba(10,16,22,.45)}
         <input id="q" type="search" placeholder="Search title, organiser, venue or ID" aria-label="Search events" autocomplete="off"><button class="x" id="qx" aria-label="Clear search" hidden>×</button></label>
       <div class="seg" id="axes" role="group" aria-label="Axis"></div>
       <div class="seg view" role="group" aria-label="View">
-        <button data-view="list">List</button><button data-view="week">Week</button><button data-view="day">Day</button>
+        <button data-view="list">List</button><button data-view="week">Week</button><button data-view="day">By room</button>
       </div>
       <button class="btn" id="fbtn" aria-expanded="false" aria-controls="panel">Filters<span class="n" id="fn" hidden></span></button>
     </div>
@@ -346,9 +356,13 @@ dialog::backdrop{background:rgba(10,16,22,.45)}
   const narrow = () => window.matchMedia('(max-width:700px)').matches;
 
   const state = {view:'list', axis:1, ags:new Set(), pkgs:new Set(), sectors:new Set(), spaces:new Set(), levels:new Set(),
-                 hl:false, conf:false, venue:'', q:'', week:1, day:DAYS[1], group:'venue'};
+                 hl:false, conf:false, venue:'', q:'', week:1, day:'', group:'venue', listAll:false};
+  // Opening day: today during COP31, otherwise the first day with events
+  const todayIso = (()=>{ const t=new Date(Date.now()+3*3600e3); return t.toISOString().slice(0,10); })();
+  state.day = DAYS.includes(todayIso) && byDay[todayIso].length ? todayIso : DAYS.find(d=>byDay[d].length);
+  if(todayIso>='2026-11-16' && todayIso<='2026-11-20') state.week=2;
   try{ const s=JSON.parse(localStorage.getItem('a1tl3')||'{}');
-    if(['list','week','day'].includes(s.view)) state.view=s.view; if(s.week===1||s.week===2) state.week=s.week; if(DAYS.includes(s.day)) state.day=s.day; if(s.group==='sector') state.group='sector'; }catch(_){}
+    if(['list','week','day'].includes(s.view)) state.view=s.view; if(s.group==='sector') state.group='sector'; }catch(_){}
   if(narrow() && state.view==='week') state.view='list';
   // Shared links: ?axis=4&ag=13&pkg=transport&space=action-agenda&level=ministerial&q=hydrogen&view=week
   try{ const q=new URLSearchParams(location.search), qa=q.get('axis');
@@ -358,7 +372,7 @@ dialog::backdrop{background:rgba(10,16,22,.45)}
     (q.get('space')||'').split(',').map(x=>SPACES.find(s=>slug(s[0])===x)).filter(Boolean).forEach(s=>state.spaces.add(s[0]));
     (q.get('level')||'').split(',').filter(Boolean).map(x=>LEVELS.find(l=>slug(l[0])===x||slug(l[2])===x)).filter(Boolean).forEach(l=>state.levels.add(l[0]));
     if(q.get('q')) state.q=q.get('q'); if(['list','week','day'].includes(q.get('view'))) state.view=q.get('view'); }catch(_){}
-  const save = ()=>{ try{ localStorage.setItem('a1tl3', JSON.stringify({view:state.view, week:state.week, day:state.day, group:state.group})); }catch(_){} };
+  const save = ()=>{ try{ localStorage.setItem('a1tl3', JSON.stringify({view:state.view, group:state.group})); }catch(_){} };
   const syncURL = ()=>{ try{ const p=new URLSearchParams();
     if(state.axis!==1) p.set('axis', state.axis||'all');
     if(state.ags.size) p.set('ag',[...state.ags].sort((a,b)=>a-b).join(','));
@@ -471,22 +485,33 @@ dialog::backdrop{background:rgba(10,16,22,.45)}
     if($('ovlbtn')) $('ovlbtn').onclick=()=>showClashes(ovl);
   }
 
+  // List: one day at a time (simple first screen); all days only on request or while searching
   function renderList(){
-    const evs = DATA.filter(e=>matches(e));
-    summary(evs, '');
+    const all = DATA.filter(e=>matches(e));
+    const showAll = state.listAll || !!state.q;
     const days = DAYS.filter(d=>byDay[d].length);
-    $('nav').innerHTML = `<div class="daynav" role="navigation" aria-label="Jump to day">`+days.map(d=>{ const f=fmtDay(d), n=evs.filter(e=>e.date===d).length;
-      return `<button data-jump="${d}" class="${n?'':'empty'}"><span class="dn">${f.dn}</span><span class="dd">${f.dd}</span><span class="dc">${n}</span></button>`; }).join('')+
-      (evs.some(e=>!e.date)?`<button data-jump="tbc"><span class="dn">Date</span><span class="dd">tbc</span><span class="dc">${evs.filter(e=>!e.date).length}</span></button>`:'')+`</div>`;
-    $('nav').querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{ const t=document.getElementById('d-'+b.dataset.jump); if(t) t.scrollIntoView({behavior:'smooth', block:'start'}); });
+    const evs = showAll ? all : all.filter(e=>e.date===state.day);
+    const f0 = fmtDay(state.day);
+    summary(evs, showAll ? (state.q?'matching your search, all days':'all days') : `${f0.dn} ${f0.dd}`);
+    $('nav').innerHTML = `<div class="daynav" role="navigation" aria-label="Choose a day">`+days.map(d=>{ const f=fmtDay(d), n=all.filter(e=>e.date===d).length;
+      return `<button data-pick="${d}" class="${n?'':'empty'}" aria-current="${!showAll&&d===state.day}"><span class="dn">${f.dn}</span><span class="dd">${f.dd}</span><span class="dc">${n} event${n===1?'':'s'}</span></button>`; }).join('')+
+      `<button data-pick="all" aria-current="${showAll}"><span class="dn">Whole COP</span><span class="dd">All days</span><span class="dc">${all.length} events</span></button></div>`;
+    $('nav').querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{ const v=b.dataset.pick;
+      if(v==='all') state.listAll=true; else { state.listAll=false; state.day=v; if(state.q){ state.q=''; qEl.value=''; syncURL(); } }
+      save(); render(); });
+    // Key moments: Leaders and Ministerial events across the COP (hidden while searching)
+    let km='';
+    if(!state.q && !state.hl){ const k=DATA.filter(e=>matches(e,'level') && e.lv>=2).sort((a,b)=>(a.date||'z').localeCompare(b.date||'z')||(a.s??9999)-(b.s??9999));
+      if(k.length) km=`<section class="km"><h2>Key moments <small>Leaders and Ministerial events, whole COP</small></h2><div class="kmrow">`+
+        k.map(e=>{ const f=e.date?fmtDay(e.date):null; return `<button class="kmc lv${e.lv}" data-id="${esc(e.id)}"><span class="kmw">${f?f.dn+' '+f.dd:'Date tbc'}${e.s!=null?' · '+hhmm(e.s):''}</span>${lvBadge(e)}<span class="kmt">${esc(e.title)}</span><span class="kmv">${esc(e.venue)}</span></button>`; }).join('')+`</div></section>`; }
     let h='';
-    days.forEach(d=>{ const l=evs.filter(e=>e.date===d); if(!l.length) return; const f=fmtDay(d);
+    (showAll?days:[state.day]).forEach(d=>{ const l=evs.filter(e=>e.date===d); if(!l.length) return; const f=fmtDay(d);
       const timed=l.filter(e=>e.s!=null).sort((a,b)=>a.s-b.s||b.lv-a.lv||a.title.localeCompare(b.title)), tbc=l.filter(e=>e.s==null).sort((a,b)=>b.lv-a.lv||a.title.localeCompare(b.title));
       h+=`<section class="dsec" id="d-${d}"><h2>${f.dn} ${f.dd}<small>${l.length} event${l.length===1?'':'s'}</small></h2>${timed.map(row).join('')}`+
          (tbc.length?`<h3>Time to be confirmed (${tbc.length})</h3>${tbc.map(row).join('')}`:'')+`</section>`; });
-    const und=evs.filter(e=>!e.date);
+    const und=showAll?evs.filter(e=>!e.date):[];
     if(und.length) h+=`<section class="dsec" id="d-tbc"><h2>Date to be confirmed<small>${und.length}</small></h2>${und.map(row).join('')}</section>`;
-    $('main').innerHTML = `<div class="list">${h||'<div class="empty-msg">No events match these filters.</div>'}</div>`;
+    $('main').innerHTML = km+`<div class="list">${h||`<div class="empty-msg">No events ${showAll?'match these filters':'on this day match these filters'}.</div>`}</div>`;
   }
 
   // Overlapping events side by side, at most MAX columns; the rest go behind a "+n more" button
