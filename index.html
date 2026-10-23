@@ -189,6 +189,7 @@ details.how[open] summary{margin-bottom:8px}
 .wev .t .code{font-weight:700; font-size:9px; padding:1px 3px; border-radius:2px}
 .wev .n{font:600 11px/1.25 var(--f-body); overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:var(--lines,3); overflow-wrap:anywhere}
 .wev:hover{filter:brightness(1.04); z-index:2}
+.wev .v{font:400 10px/1.2 var(--f-body); color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .more{position:absolute; right:3px; z-index:4; border:0; background:var(--accent); color:var(--accent-fg); border-radius:10px; cursor:pointer; font:700 11px/20px var(--f-body); height:20px; padding:0 7px; box-shadow:0 1px 3px rgba(0,0,0,.25)}
 
 /* Day view (lanes) */
@@ -312,7 +313,7 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
     <div class="tb2">
       <div class="seg" id="axes" role="group" aria-label="Axis"></div>
       <div class="seg view" role="group" aria-label="View">
-        <button data-view="week">Week</button><button data-view="list">List</button><button data-view="day">By room</button>
+        <button data-view="week">Week</button><button data-view="daycol">Day</button><button data-view="list">List</button><button data-view="day">By room</button>
       </div>
     </div>
   </section>
@@ -388,7 +389,7 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
   state.day = DAYS.includes(todayIso) && byDay[todayIso].length ? todayIso : DAYS.find(d=>byDay[d].length);
   if(todayIso>='2026-11-16' && todayIso<='2026-11-20') state.week=2;
   try{ const s=JSON.parse(localStorage.getItem('a1tl3')||'{}');
-    if(['list','week','day'].includes(s.view)) state.view=s.view; if(s.group==='sector') state.group='sector'; }catch(_){}
+    if(['list','week','daycol','day'].includes(s.view)) state.view=s.view; if(s.group==='sector') state.group='sector'; }catch(_){}
   // Shared links: ?axis=4&ag=13&pkg=transport&space=action-agenda&level=ministerial&q=hydrogen&view=week
   try{ const q=new URLSearchParams(location.search), qa=q.get('axis');
     if(qa==='all') state.axis=0; else if(/^[1-6]$/.test(qa||'')) state.axis=+qa;
@@ -396,7 +397,7 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
     (q.get('pkg')||'').split(',').map(x=>PKGS.find(p=>slug(p)===x)).filter(Boolean).forEach(p=>state.pkgs.add(p));
     (q.get('space')||'').split(',').map(x=>SPACES.find(s=>slug(s[0])===x)).filter(Boolean).forEach(s=>state.spaces.add(s[0]));
     (q.get('level')||'').split(',').filter(Boolean).map(x=>LEVELS.find(l=>slug(l[0])===x||slug(l[2])===x)).filter(Boolean).forEach(l=>state.levels.add(l[0]));
-    if(q.get('q')) state.q=q.get('q'); if(['list','week','day'].includes(q.get('view'))) state.view=q.get('view'); }catch(_){}
+    if(q.get('q')) state.q=q.get('q'); if(['list','week','daycol','day'].includes(q.get('view'))) state.view=q.get('view'); }catch(_){}
   const save = ()=>{ try{ localStorage.setItem('a1tl3', JSON.stringify({view:state.view, group:state.group})); }catch(_){} };
   const syncURL = ()=>{ try{ const p=new URLSearchParams();
     if(state.axis!==1) p.set('axis', state.axis||'all');
@@ -625,7 +626,38 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
       (tbc.length?`<div class="list" style="margin-top:16px"><section class="dsec"><h3>Time to be confirmed (${tbc.length})</h3>${tbc.map(row).join('')}</section></div>`:'');
   }
 
-  function render(){ renderToolbar(); ({list:renderList, week:renderWeek, day:renderDay})[state.view](); }
+  // Day: one day, time down the side like the week view, every event side by side (no "+n" overflow)
+  function dayNav(){
+    $('nav').innerHTML = `<div class="daytabs">`+DAYS.filter(d=>byDay[d].length).map(d=>{ const g=fmtDay(d), n=byDay[d].filter(e=>matches(e)).length;
+      return `<button class="btn${d===state.day?' on':''}" data-day="${d}">${g.dn} ${g.dd} · ${n}</button>`; }).join('')+`</div>`;
+    $('nav').querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{ state.day=b.dataset.day; save(); render(); });
+  }
+  function renderDayCols(){
+    const evs=byDay[state.day].filter(e=>matches(e)), f=fmtDay(state.day);
+    const timed=evs.filter(e=>e.s!=null), tbc=evs.filter(e=>e.s==null);
+    summary(evs, `${f.dn} ${f.dd}`);
+    dayNav();
+    let h0=8, h1=19; timed.forEach(e=>{ h0=Math.min(h0,Math.floor(e.s/60)); h1=Math.max(h1,Math.ceil(e.end/60)); });
+    const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||60, H=(h1-h0)*hh, start=h0*60;
+    const SUBW = narrow() ? 132 : 150;
+    const l=timed.map(e=>Object.assign(Object.create(e),{s:e.s,end:e.end,_hide:false})); layoutCols(l, Infinity);
+    const n=Math.max(1,...l.map(e=>e._n||1));
+    let html=`<div class="wgrid dayc" style="grid-template-columns:var(--gut) minmax(${n*SUBW}px,1fr)"><div class="whead corner"></div>`+
+      `<div class="whead"><span class="dn">${f.dn}</span><span class="dd">${f.dd}</span><span class="dc">${timed.length} timed · ${tbc.length} time tbc · up to ${n} at once</span></div>`;
+    html+=`<div class="wtimes" style="height:${H}px">`; for(let h=h0+1;h<h1;h++) html+=`<span style="top:${(h-h0)*hh}px">${String(h).padStart(2,'0')}:00</span>`; html+=`</div>`;
+    html+=`<div class="wcol" style="height:${H}px">`;
+    l.forEach(e=>{
+      const top=(e.s-start)/60*hh+1, ht=Math.max((e.end-e.s)/60*hh-2,26), showV=ht>=56, lines=Math.max(1,Math.floor((ht-19-(showV?14:0))/13.75));
+      const sp=SPC[e.space];
+      html+=`<button class="wev lv${e.lv} ${grad(e)}${e.status==='Confirmed'?'':' review'}" data-id="${esc(e.id)}" title="${esc(e.title+' · '+e.venue)}" style="--c:var(--c-${e.main}); --lines:${lines}; top:${top}px; height:${ht}px; left:${e._c/e._n*100}%; width:calc(${100/e._n}% - 2px)">`+
+        `<span class="t">${hhmm(e.s)}–${e.open?'tbc':hhmm(e.end)}${sp?`<span class="code sp-${sp[1]}">${sp[2]}</span>`:''}${e.lv>=2?`<span class="code lv${e.lv}">${e.lv===3?'★★':'★'}</span>`:''}</span><span class="n">${esc(e.title)}</span>${showV?`<span class="v">${esc(e.venue)}</span>`:''}</button>`;
+    });
+    html+=`</div></div>`;
+    $('main').innerHTML = (timed.length?`<div class="boardwrap">${html}</div>`:`<div class="empty-msg">No timed events match these filters on this day.</div>`)+
+      (tbc.length?`<div class="list" style="margin-top:16px"><section class="dsec"><h3>Time to be confirmed (${tbc.length})</h3>${tbc.map(row).join('')}</section></div>`:'');
+  }
+
+  function render(){ renderToolbar(); ({list:renderList, week:renderWeek, daycol:renderDayCols, day:renderDay})[state.view](); }
 
   // ---------- detail drawer ----------
   const drawer=$('drawer'), scrim=$('scrim');
