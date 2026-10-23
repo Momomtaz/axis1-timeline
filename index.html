@@ -189,6 +189,12 @@ details.how[open] summary{margin-bottom:8px}
 .wev .t .code{font-weight:700; font-size:9px; padding:1px 3px; border-radius:2px}
 .wev .n{font:600 11px/1.25 var(--f-body); overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:var(--lines,3); overflow-wrap:anywhere}
 .wev:hover{filter:brightness(1.04); z-index:2}
+.bdg.hlc,.code.hlc{color:#5B2A86; background:#EFE4FA; border:1px solid #B48CDB}
+.hlc-attending{color:#FFFFFF!important; background:#5B2A86!important; border-color:#5B2A86!important}
+.hlc-declined,.hlc-delegated{opacity:.6}
+.wev.grp{--c:var(--c-all); border:1px solid var(--line); background:repeating-linear-gradient(135deg, var(--surface) 0 6px, var(--line-soft) 6px 12px)}
+.wev.grp .code.gn{background:var(--fg); color:var(--surface)}
+.internal-note{background:#5B2A86; color:#fff; padding:6px 12px; border-radius:var(--r-md); font-size:13px; font-weight:500}
 .wev .v{font:400 10px/1.2 var(--f-body); color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .more{position:absolute; right:3px; z-index:4; border:0; background:var(--accent); color:var(--accent-fg); border-radius:10px; cursor:pointer; font:700 11px/20px var(--f-body); height:20px; padding:0 7px; box-shadow:0 1px 3px rgba(0,0,0,.25)}
 
@@ -307,6 +313,7 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
       <div class="grp" id="secgrp"><span class="lbl">Sector (Axis 1)</span><div class="chips" id="secchips"></div></div>
       <div class="grp"><span class="lbl">Activation Group</span><div class="chips" id="agchips"></div></div>
       <div class="grp"><span class="lbl">Delivery package</span><div class="chips" id="pkgchips"></div></div>
+      <div class="grp" id="hlcgrp" hidden><span class="lbl">Champions (HLC) · internal</span><div class="chips" id="hlcchips"></div></div>
       <div class="grp"><span class="lbl">Status</span><div class="chips"><button class="chip" id="confonly" aria-pressed="false">Confirmed only</button></div></div>
       <div class="grp"><span class="lbl">Venue</span><select id="venuesel" aria-label="Venue"><option value="">All venues</option></select></div>
     </div>
@@ -347,6 +354,8 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
   const SPC = Object.fromEntries(SPACES.map(s=>[s[0],s]));
   const LEVELS = [['Heads of State / Leaders',3,'★★ Leaders'],['Ministerial',2,'★ Ministerial'],['High-level',1,'High-level'],['Standard',0,'']];
   const LV = Object.fromEntries(LEVELS.map(l=>[l[0],l]));
+  const HLCK = ['Attending','Considering','Invited','Delegated','Declined'];
+  const INTERNAL = DATA.some(e=>e.hlc);
   const slug = p => p.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
   const DAYS = []; for(let d=9; d<=20; d++) DAYS.push('2026-11-'+String(d).padStart(2,'0'));
   const DN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -365,7 +374,14 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
     e.level = LV[e.level] ? e.level : 'Standard'; e.lv = LV[e.level][1];
     e.space = SPC[e.space] ? e.space : (e.space||'Location tbc');
     e.venue = vname(e.loc);
-    e.hay = [e.title,e.org,e.loc,e.id,e.space,e.level,e.status,...e.sec.map(k=>SLABEL[k]),...e.ags.map(a=>'AG '+a)].join(' ').toLowerCase();
+    // Champions' attendance: only present in the internal build (never on the public page)
+    const hv = e.hlc ? Object.values(e.hlc) : [];
+    e.hlcKey = HLCK.find(k=>hv.includes(k)) || (hv.length?'Other':'');
+    // Left-to-right importance: Leaders, Ministerial, HLC attending, High-level, Action Agenda, Presidency pavilion, Blue Zone, Green Zone, rest
+    e.rank = e.lv===3?0 : e.lv===2?1 : e.hlcKey==='Attending'?2 : e.lv===1?3 : e.space==='Action Agenda'?4 : e.space==='COP31 Presidency'?5 : e.space==='Blue Zone'?6 : e.space==='Green Zone'?7 : 8;
+    // Same-pavilion grouping key (rooms of one pavilion count together; GCA / Action Agenda rooms and unknown venues never grouped)
+    e.pav = (e.space==='Action Agenda' || /^Venue to be confirmed$/.test(e.venue)) ? '' : e.venue.split(' – ')[0];
+    e.hay = [e.title,e.org,e.loc,e.id,e.space,e.level,e.status,...e.sec.map(k=>SLABEL[k]),...e.ags.map(a=>'AG '+a),...(e.hlc?['HLC',...Object.entries(e.hlc).map(([w,v])=>w+' '+v)]:[])].join(' ').toLowerCase();
     e.ovl = [];
   });
   // Possible clashes: same day, both timed, overlap >= 30 min, a shared specific sector tag ('all' excluded)
@@ -383,7 +399,7 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
   const narrow = () => window.matchMedia('(max-width:700px)').matches;
 
   const state = {view:'week', axis:1, ags:new Set(), pkgs:new Set(), sectors:new Set(), spaces:new Set(), levels:new Set(),
-                 hl:false, conf:false, venue:'', q:'', week:1, day:'', group:'venue', listAll:false};
+                 hl:false, hlcs:new Set(), conf:false, venue:'', q:'', week:1, day:'', group:'venue', listAll:false};
   // Opening day: today during COP31, otherwise the first day with events
   const todayIso = (()=>{ const t=new Date(Date.now()+3*3600e3); return t.toISOString().slice(0,10); })();
   state.day = DAYS.includes(todayIso) && byDay[todayIso].length ? todayIso : DAYS.find(d=>byDay[d].length);
@@ -416,23 +432,27 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
     if(skip!=='sec' && state.sectors.size && !(e.all || e.sec.some(t=>state.sectors.has(t)))) return false;
     if(skip!=='space' && state.spaces.size && !state.spaces.has(e.space)) return false;
     if(skip!=='level' && state.levels.size && !state.levels.has(e.level)) return false;
+    if(skip!=='hlc' && state.hlcs.size && !state.hlcs.has(e.hlcKey)) return false;
     if(state.conf && e.status!=='Confirmed') return false;
     if(skip!=='venue' && state.venue && e.venue!==state.venue) return false;
     if(state.q){ const words=state.q.toLowerCase().split(/\s+/).filter(Boolean); if(!words.every(w=>e.hay.includes(w))) return false; }
     return true;
   }
-  const nPanel = () => state.ags.size+state.pkgs.size+state.sectors.size+state.levels.size+(state.conf?1:0)+(state.venue?1:0);
+  const nPanel = () => state.hlcs.size+state.ags.size+state.pkgs.size+state.sectors.size+state.levels.size+(state.conf?1:0)+(state.venue?1:0);
 
   // ---------- badges ----------
   const lvBadge = e => e.lv ? `<span class="bdg lv${e.lv}" title="${esc(e.level)}">${LV[e.level][2]}</span>` : '';
   const spBadge = e => SPC[e.space] ? `<span class="bdg sp sp-${SPC[e.space][1]}">${esc(e.space)}</span>` : '';
   const grad = e => e.lv===3?'g3':e.lv===2?'g2':e.space==='COP31 Presidency'?'gpc':e.space==='Action Agenda'?'gaa':'';
   const stBadge = e => e.status==='Confirmed' ? '' : `<span class="bdg st-rev">Under review</span>`;
+  const hlcTxt = e => e.hlc ? Object.entries(e.hlc).map(([w,v])=>w+': '+v.toLowerCase()).join(' · ') : '';
+  const hlcBadge = e => e.hlc ? `<span class="bdg hlc hlc-${e.hlcKey.toLowerCase()}" title="${esc(hlcTxt(e))}">HLC ${esc(hlcTxt(e))}</span>` : '';
+  const hlcCode = e => e.hlc ? `<span class="code hlc hlc-${e.hlcKey.toLowerCase()}" title="${esc(hlcTxt(e))}">HLC</span>` : '';
   const dots = e => { const ks=e.all?['all']:(e.sec.length?e.sec:[]); return ks.length?`<span class="dots">${ks.map(k=>`<i style="--c:var(--c-${k})">${esc(SLABEL[k])}</i>`).join('')}</span>`:''; };
   function row(e){
     const tm = e.s==null ? `<div class="tm tbc">Time tbc</div>` : `<div class="tm">${hhmm(e.s)}<small>–${e.open?'tbc':hhmm(e.end)}</small></div>`;
     return `<button class="rev lv${e.lv} ${grad(e)}${e.status==='Confirmed'?'':' review'}" data-id="${esc(e.id)}" style="--c:var(--c-${e.main})">${tm}`+
-      `<div class="bd"><div class="tags">${lvBadge(e)}${spBadge(e)}${stBadge(e)}</div><div class="ti">${esc(e.title)}</div>`+
+      `<div class="bd"><div class="tags">${lvBadge(e)}${hlcBadge(e)}${spBadge(e)}${stBadge(e)}</div><div class="ti">${esc(e.title)}</div>`+
       `<div class="mt">${esc(e.org==='tbc'?'Organiser tbc':e.org)} · ${esc(e.venue)}</div>${dots(e)}</div></button>`;
   }
 
@@ -450,7 +470,7 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
   fbtn.onclick=()=>setPanel(panel.hidden); $('pdone').onclick=()=>setPanel(false);
   $('confonly').onclick=()=>{ state.conf=!state.conf; render(); };
   $('venuesel').onchange=ev=>{ state.venue=ev.target.value; render(); };
-  const clearAll=()=>{ state.ags.clear(); state.pkgs.clear(); state.sectors.clear(); state.spaces.clear(); state.levels.clear(); state.conf=false; state.venue=''; state.q=''; qEl.value=''; syncURL(); render(); };
+  const clearAll=()=>{ state.hlcs.clear(); state.ags.clear(); state.pkgs.clear(); state.sectors.clear(); state.spaces.clear(); state.levels.clear(); state.conf=false; state.venue=''; state.q=''; qEl.value=''; syncURL(); render(); };
   $('clear2').onclick=clearAll;
   const toggle=(set,v)=>{ set.has(v)?set.delete(v):set.add(v); syncURL(); render(); };
 
@@ -464,6 +484,10 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
       return `<button class="chip" data-space="${s}" aria-pressed="${on}"${n||on?'':' disabled'}><span class="bdg sp sp-${c}" style="padding:2px 5px">${s}</span><small>${n}</small></button>`; }).join('');
     $('spacechips').querySelectorAll('[data-space]').forEach(b=>b.onclick=()=>toggle(state.spaces,b.dataset.space));
     $('confonly').setAttribute('aria-pressed',String(state.conf));
+    $('hlcgrp').hidden = !INTERNAL;
+    if(INTERNAL){ $('hlcchips').innerHTML = HLCK.map(k=>{ const n=cnt('hlc',e=>e.hlcKey===k), on=state.hlcs.has(k);
+        return (n||on)?`<button class="chip" data-hlc="${k}" aria-pressed="${on}"><span class="bdg hlc hlc-${k.toLowerCase()}" style="padding:2px 5px">HLC ${k.toLowerCase()}</span><small>${n}</small></button>`:''; }).join('');
+      $('hlcchips').querySelectorAll('[data-hlc]').forEach(b=>b.onclick=()=>toggle(state.hlcs,b.dataset.hlc)); }
     $('levelchips').innerHTML = LEVELS.map(([l,r,lab])=>{ const n=cnt('level',e=>e.level===l), on=state.levels.has(l);
       return `<button class="chip" data-level="${esc(l)}" aria-pressed="${on}"${n||on?'':' disabled'}>${r?`<span class="bdg lv${r}" style="padding:2px 5px">${lab}</span>`:'Standard'}<small>${n}</small></button>`; }).join('');
     $('levelchips').querySelectorAll('[data-level]').forEach(b=>b.onclick=()=>toggle(state.levels,b.dataset.level));
@@ -490,6 +514,7 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
     state.sectors.forEach(k=>act.push([SLABEL[k],()=>state.sectors.delete(k)]));
     state.ags.forEach(a=>act.push(['AG '+a,()=>state.ags.delete(a)]));
     state.pkgs.forEach(p=>act.push([p,()=>state.pkgs.delete(p)]));
+    state.hlcs.forEach(k=>act.push(['HLC '+k.toLowerCase(),()=>state.hlcs.delete(k)]));
     if(state.conf) act.push(['Confirmed only',()=>state.conf=false]);
     if(state.venue) act.push([state.venue,()=>state.venue='']);
     const ae=$('active'); ae.hidden=!act.length;
@@ -544,9 +569,15 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
 
   // Overlapping events side by side, at most MAX columns; the rest go behind a "+n more" button
   function layoutCols(evs, MAX){
-    evs.sort((a,b)=>a.s-b.s||b.lv-a.lv||b.end-a.end);
+    evs.sort((a,b)=>a.s-b.s||a.rank-b.rank||b.end-a.end);
     const mores=[]; let cluster=[], cend=-1;
-    const flush=()=>{ const cols=[]; cluster.forEach(e=>{ let c=cols.findIndex(end=>end<=e.s); if(c<0){c=cols.length; cols.push(0);} cols[c]=e.end; e._c=c; });
+    const flush=()=>{ const cols=[];
+      // Most important first; each event goes just right of every more important event it overlaps,
+      // so at any moment the events running side by side read left to right by importance
+      const placed=[];
+      [...cluster].sort((a,b)=>a.rank-b.rank||a.s-b.s||String(a.title).localeCompare(String(b.title))).forEach(e=>{
+        const c=1+Math.max(-1,...placed.filter(p=>p.s<e.end && e.s<p.end).map(p=>p._c));
+        while(cols.length<=c) cols.push([]); cols[c].push([e.s,e.end]); e._c=c; placed.push(e); });
       const n=cols.length;
       if(n<=MAX){ cluster.forEach(e=>e._n=n); }
       else { const keep=cluster.filter(e=>e._c<MAX), hid=cluster.filter(e=>e._c>=MAX);
@@ -560,6 +591,28 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
     return mores;
   }
 
+  // Overlapping events in the same pavilion become one card (opens the drawer list). Leaders, Ministerial and HLC-attending events keep their own card.
+  function groupPav(list){
+    const keep=[], by={};
+    list.forEach(e=>{ if(!e.pav || e.lv>=2 || e.hlcKey==='Attending') keep.push(e); else (by[e.pav]=by[e.pav]||[]).push(e); });
+    Object.entries(by).forEach(([pav,l])=>{ l.sort((a,b)=>a.s-b.s); let comp=[], cend=-1;
+      const close=()=>{ if(comp.length<2) keep.push(...comp);
+        else keep.push({grp:comp.map(x=>Object.getPrototypeOf(x)), id:'', s:Math.min(...comp.map(x=>x.s)), end:Math.max(...comp.map(x=>x.end)), open:false,
+          lv:0, hlcKey:'', rank:Math.min(...comp.map(x=>x.rank)), space:comp[0].space, main:'none', status:'Confirmed', venue:pav,
+          title:`${pav}: ${comp.length} events`, _hide:false});
+        comp=[]; };
+      l.forEach(e=>{ if(comp.length && e.s>=cend){ close(); cend=-1; } comp.push(e); cend=Math.max(cend,e.end); }); close(); });
+    return keep;
+  }
+  const GRP=[];
+  function grpCard(e, top, ht, lines){
+    const i=GRP.push(e)-1, sp=SPC[e.space];
+    return `<button class="wev grp" data-grp="${i}" title="${esc(e.title)}" style="--lines:${lines}; top:${top}px; height:${ht}px; left:${e._c/e._n*100}%; width:calc(${100/e._n}% - 2px)">`+
+      `<span class="t">${hhmm(e.s)}–${hhmm(e.end)}${sp?`<span class="code sp-${sp[1]}">${sp[2]}</span>`:''}<span class="code gn">${e.grp.length}</span></span>`+
+      `<span class="n">${esc(e.title)}</span><span class="v">${esc(e.grp.map(x=>x.title).join(' · '))}</span></button>`;
+  }
+  document.addEventListener('click',ev=>{ const b=ev.target.closest('[data-grp]'); if(!b) return; const g=GRP[+b.dataset.grp]; if(g) showList(g.title, g.grp.slice()); });
+
   function renderWeek(){
     const W=WEEKS.find(w=>w.n===state.week), days=W.days;
     const evs=days.flatMap(d=>byDay[d]).filter(e=>matches(e));
@@ -571,7 +624,8 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
     let h0=8, h1=19; timed.forEach(e=>{ h0=Math.min(h0,Math.floor(e.s/60)); h1=Math.max(h1,Math.ceil(e.end/60)); });
     const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||60, H=(h1-h0)*hh, start=h0*60;
     const MAX = 2, SUBW = 140;
-    const per = days.map(d=>{ const l=timed.filter(e=>e.date===d).map(e=>Object.assign(Object.create(e),{s:e.s,end:e.end,_hide:false})); const m=layoutCols(l,MAX); return {l,m}; });
+    GRP.length=0;
+    const per = days.map(d=>{ const l=groupPav(timed.filter(e=>e.date===d).map(e=>Object.assign(Object.create(e),{s:e.s,end:e.end,_hide:false}))); const m=layoutCols(l,MAX); return {l,m}; });
     const ncols = per.map(({l})=>Math.max(1,...l.filter(e=>!e._hide).map(e=>e._n||1)));
     let html=`<div class="wgrid" style="grid-template-columns:var(--gut) ${ncols.map(n=>`minmax(${n*SUBW}px,${n}fr)`).join(' ')}"><div class="whead corner"></div>`;
     days.forEach(d=>{ const f=fmtDay(d), l=evs.filter(e=>e.date===d);
@@ -582,9 +636,10 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
       html+=`<div class="wcol" style="height:${H}px">`;
       l.filter(e=>!e._hide).forEach(e=>{
         const top=(e.s-start)/60*hh+1, ht=Math.max((e.end-e.s)/60*hh-2,26), lines=Math.max(1,Math.floor((ht-19)/13.75));
+        if(e.grp){ html+=grpCard(e, top, ht, Math.max(1,lines-1)); return; }
         const sp=SPC[e.space];
         html+=`<button class="wev lv${e.lv} ${grad(e)}${e.status==='Confirmed'?'':' review'}" data-id="${esc(e.id)}" title="${esc(e.title+' · '+e.venue)}" style="--c:var(--c-${e.main}); --lines:${lines}; top:${top}px; height:${ht}px; left:${e._c/e._n*100}%; width:calc(${100/e._n}% - 2px)">`+
-          `<span class="t">${hhmm(e.s)}${sp?`<span class="code sp-${sp[1]}">${sp[2]}</span>`:''}${e.lv>=2?`<span class="code lv${e.lv}">${e.lv===3?'★★':'★'}</span>`:''}</span><span class="n">${esc(e.title)}</span></button>`;
+          `<span class="t">${hhmm(e.s)}${sp?`<span class="code sp-${sp[1]}">${sp[2]}</span>`:''}${e.lv>=2?`<span class="code lv${e.lv}">${e.lv===3?'★★':'★'}</span>`:''}${hlcCode(e)}</span><span class="n">${esc(e.title)}</span></button>`;
       });
       m.forEach(mo=>{ const i=MORE.push(mo.evs)-1, top=(mo.s-start)/60*hh+2;
         html+=`<button class="more" data-more="${i}" style="top:${top}px" title="${mo.evs.length} more event${mo.evs.length===1?'':'s'} starting this hour">+${mo.evs.length}</button>`; });
@@ -594,7 +649,7 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
     let t='';
     if(tbc.length){ t+=`<div class="list" style="margin-top:16px">`; days.forEach(d=>{ const l=tbc.filter(e=>e.date===d); if(l.length){ const f=fmtDay(d); t+=`<section class="dsec"><h3>${f.dn} ${f.dd}: time to be confirmed (${l.length})</h3>${l.map(row).join('')}</section>`; } }); t+=`</div>`; }
     $('main').innerHTML = (timed.length?`<div class="boardwrap">${html}</div>`:`<div class="empty-msg">No timed events match these filters this week.</div>`)+t;
-    $('main').querySelectorAll('[data-more]').forEach(b=>b.onclick=()=>showList(`${MORE[+b.dataset.more].length} more events`, MORE[+b.dataset.more].map(x=>Object.getPrototypeOf(x))));
+    $('main').querySelectorAll('[data-more]').forEach(b=>b.onclick=()=>{ const l=MORE[+b.dataset.more].flatMap(x=>x.grp?x.grp:[Object.getPrototypeOf(x)]); showList(`${l.length} more events`, l); });
   }
 
   function renderDay(){
@@ -640,7 +695,8 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
     let h0=8, h1=19; timed.forEach(e=>{ h0=Math.min(h0,Math.floor(e.s/60)); h1=Math.max(h1,Math.ceil(e.end/60)); });
     const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||60, H=(h1-h0)*hh, start=h0*60;
     const SUBW = narrow() ? 132 : 150;
-    const l=timed.map(e=>Object.assign(Object.create(e),{s:e.s,end:e.end,_hide:false})); layoutCols(l, Infinity);
+    GRP.length=0;
+    const l=groupPav(timed.map(e=>Object.assign(Object.create(e),{s:e.s,end:e.end,_hide:false}))); layoutCols(l, Infinity);
     const n=Math.max(1,...l.map(e=>e._n||1));
     let html=`<div class="wgrid dayc" style="grid-template-columns:var(--gut) minmax(${n*SUBW}px,1fr)"><div class="whead corner"></div>`+
       `<div class="whead"><span class="dn">${f.dn}</span><span class="dd">${f.dd}</span><span class="dc">${timed.length} timed · ${tbc.length} time tbc · up to ${n} at once</span></div>`;
@@ -648,9 +704,10 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
     html+=`<div class="wcol" style="height:${H}px">`;
     l.forEach(e=>{
       const top=(e.s-start)/60*hh+1, ht=Math.max((e.end-e.s)/60*hh-2,26), showV=ht>=56, lines=Math.max(1,Math.floor((ht-19-(showV?14:0))/13.75));
+      if(e.grp){ html+=grpCard(e, top, ht, lines); return; }
       const sp=SPC[e.space];
       html+=`<button class="wev lv${e.lv} ${grad(e)}${e.status==='Confirmed'?'':' review'}" data-id="${esc(e.id)}" title="${esc(e.title+' · '+e.venue)}" style="--c:var(--c-${e.main}); --lines:${lines}; top:${top}px; height:${ht}px; left:${e._c/e._n*100}%; width:calc(${100/e._n}% - 2px)">`+
-        `<span class="t">${hhmm(e.s)}–${e.open?'tbc':hhmm(e.end)}${sp?`<span class="code sp-${sp[1]}">${sp[2]}</span>`:''}${e.lv>=2?`<span class="code lv${e.lv}">${e.lv===3?'★★':'★'}</span>`:''}</span><span class="n">${esc(e.title)}</span>${showV?`<span class="v">${esc(e.venue)}</span>`:''}</button>`;
+        `<span class="t">${hhmm(e.s)}–${e.open?'tbc':hhmm(e.end)}${sp?`<span class="code sp-${sp[1]}">${sp[2]}</span>`:''}${e.lv>=2?`<span class="code lv${e.lv}">${e.lv===3?'★★':'★'}</span>`:''}${hlcCode(e)}</span><span class="n">${esc(e.title)}</span>${showV?`<span class="v">${esc(e.venue)}</span>`:''}</button>`;
     });
     html+=`</div></div>`;
     $('main').innerHTML = (timed.length?`<div class="boardwrap">${html}</div>`:`<div class="empty-msg">No timed events match these filters on this day.</div>`)+
@@ -691,6 +748,7 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
     openDrawer(`<div class="idline"><span>${esc(e.id)}</span>${lvBadge(e)}${spBadge(e)}${stBadge(e)}</div><h2>${esc(e.title)}</h2>`+
       `<dl class="facts"><dt>When</dt><dd>${esc(when)}</dd><dt>Where</dt><dd>${esc(e.loc)}</dd><dt>Organiser</dt><dd>${esc(e.org)}</dd>`+
       `<dt>Space</dt><dd>${esc(e.space)}</dd><dt>Level</dt><dd>${esc(e.level)}</dd><dt>Status</dt><dd>${esc(e.status)}</dd><dt>CCT contact</dt><dd>${esc(e.fp==='tbc'?'To be confirmed':e.fp)}</dd>`+
+      (e.hlc?`<dt>Champions</dt><dd>${hlcBadge(e)}</dd>`:'')+
       `<dt>Source</dt><dd>${e.srcurl?`<a href="${esc(e.srcurl)}" target="_blank" rel="noopener">${esc(e.src||'Source')} ↗</a>`:esc(e.src||'Not recorded')}</dd></dl>`+
       (e.desc?`<section><h3>About</h3><p class="desc">${esc(e.desc)}</p></section>`:'')+
       `<section><h3>Topic</h3><dl class="facts"><dt>Sectors</dt><dd>${dots(e)||'Not tagged'}${gi?`<div style="margin-top:4px;font-size:12px;color:var(--muted)">Industry focus: ${esc(gi)}</div>`:''}</dd>`+
@@ -707,6 +765,7 @@ footer{font-size:12.5px; color:var(--muted); display:grid; gap:4px; max-width:90
   });
   let lastNarrow=narrow(); window.addEventListener('resize',()=>{ clearTimeout(window._rt); window._rt=setTimeout(()=>{ if(narrow()!==lastNarrow){ lastNarrow=narrow(); render(); } },150); });
   const _render=render; render=function(){ _render(); markSel(); };
+  if(INTERNAL){ const n=document.createElement('div'); n.className='internal-note'; n.textContent='Internal (CCT only): includes the Champions\' invitations and attendance. Do not share this page.'; document.querySelector('header').prepend(n); document.title+=' (internal)'; }
   render();
 })();
 </script>
